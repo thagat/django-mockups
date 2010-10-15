@@ -233,25 +233,18 @@ class AutoFixture(object):
         specified field will be ignored (e.g. if no matching generator was
         found).
         '''
+
+        if field.name in self.field_generators:
+            return self.field_generators[field.name]
+
         if isinstance(field, fields.AutoField):
             return None
         if field.default is not fields.NOT_PROVIDED and \
             not self.overwrite_defaults:
                 return None
-        kwargs = {}
-
-        if field.name in self.field_generators:
-            value = self.field_generators[field.name]
-            if isinstance(value, generators.Generator):
-                return value
-            elif isinstance(value, AutoFixture):
-                return generators.InstanceGenerator(autofixture=value)
-            elif callable(value):
-                return generators.CallableGenerator(value=value)
-            return generators.StaticGenerator(value=value)
 
         if field.choices:
-            return generators.ChoicesGenerator(choices=field.choices, **kwargs)
+            return generators.ChoicesGenerator(choices=field.choices)
         if isinstance(field, related.ForeignKey):
             # if generate_fk is set, follow_fk is ignored.
             if field.name in self.generate_fk:
@@ -286,7 +279,7 @@ class AutoFixture(object):
                     limit_choices_to=field.rel.limit_choices_to,
                     min_count=min_count,
                     max_count=max_count,
-                    **kwargs)
+                    )
             if field.name in self.follow_m2m:
                 min_count, max_count = self.follow_m2m[field.name]
                 return generators.InstanceSelector(
@@ -294,7 +287,7 @@ class AutoFixture(object):
                     limit_choices_to=field.rel.limit_choices_to,
                     min_count=min_count,
                     max_count=max_count,
-                    **kwargs)
+                    )
             if field.blank or field.null:
                 return generators.StaticGenerator([])
             raise CreateInstanceError(
@@ -309,7 +302,7 @@ class AutoFixture(object):
         if isinstance(field, fields.FilePathField):
             return generators.FilePathGenerator(
                 path=field.path, match=field.match, recursive=field.recursive,
-                max_length=field.max_length, **kwargs)
+                max_length=field.max_length)
         if isinstance(field, fields.CharField):
             if isinstance(field, fields.SlugField):
                 generator = generators.SlugGenerator
@@ -335,10 +328,10 @@ class AutoFixture(object):
                 return generators.IntegerGenerator(
                     min_value=-field.MAX_BIGINT - 1,
                     max_value=field.MAX_BIGINT,
-                    **kwargs)
+                    )
         for field_class, generator in self.field_to_generator.items():
             if isinstance(field, field_class):
-                return generator(**kwargs)
+                return generator()
         return None
 
     def get_value(self, field):
@@ -384,7 +377,6 @@ class AutoFixture(object):
         #   * only generate relation if 'generate_m2m' is given
         #   * first generate intermediary model and assign a newly created
         #     related model to the foreignkey
-        kwargs = {}
         if field.name in self.generate_m2m:
             # get fk to related model on intermediary model
             related_fks = [fk
@@ -404,13 +396,13 @@ class AutoFixture(object):
                 get_autofixture(
                     through,
                     field_generators={
-                        self_fk.name: instance,
+                        self_fk.name: generators.StaticGenerator(instance),
                         related_fk.name: generators.InstanceGenerator(
                             get_autofixture(field.rel.to))
                     }),
                 min_count=min_count,
                 max_count=max_count,
-                **kwargs).generate()
+                ).generate()
 
     def check_constrains(self, instance):
         '''

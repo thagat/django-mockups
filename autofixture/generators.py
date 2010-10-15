@@ -85,7 +85,7 @@ class UUIDGenerator(Generator):
         value = unicode(uuid.uuid1())
         if self.max_length is not None:
             value = value[:self.max_length]
-        return max_length
+        return value
 
 
 class StringGenerator(Generator):

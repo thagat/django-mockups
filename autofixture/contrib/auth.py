@@ -22,16 +22,16 @@ class UserFixture(AutoFixture):
     * ``date_joined`` and ``last_login`` are always in the past and it is
       assured that ``date_joined`` will be lower than ``last_login``.
     '''
-        username = generators.UUIDGenerator()
-        first_name = generators.LoremWordGenerator(1)
-        last_name = generators.LoremWordGenerator(1)
-        password = generators.StaticGenerator(UNUSABLE_PASSWORD)
-        is_active = generators.StaticGenerator(True)
-        # don't generate admin users
-        is_staff = generators.StaticGenerator(False)
-        is_superuser = generators.StaticGenerator(False)
-        date_joined = generators.DateTimeGenerator(max_date=datetime.now())
-        last_login = generators.DateTimeGenerator(max_date=datetime.now())
+    username = generators.UUIDGenerator(max_length=30)
+    first_name = generators.LoremWordGenerator(1)
+    last_name = generators.LoremWordGenerator(1)
+    password = generators.StaticGenerator(UNUSABLE_PASSWORD)
+    is_active = generators.StaticGenerator(True)
+    # don't generate admin users
+    is_staff = generators.StaticGenerator(False)
+    is_superuser = generators.StaticGenerator(False)
+    date_joined = generators.DateTimeGenerator(max_date=datetime.now())
+    last_login = generators.DateTimeGenerator(max_date=datetime.now())
 
     # don't follow permissions and groups
     follow_m2m = False

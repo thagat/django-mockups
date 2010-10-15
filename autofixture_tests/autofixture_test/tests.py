@@ -62,9 +62,9 @@ class TestBasicModel(TestCase):
         filler = AutoFixture(
             BasicModel,
             field_generators={
-                'intfield': 1,
+                'intfield': generators.StaticGenerator(1),
                 'chars': generators.ChoicesGenerator(values=char_values),
-                'shortchars': lambda: u'ab',
+                'shortchars': generators.CallableGenerator(lambda: u'ab'),
             })
         for obj in filler.create(100):
             self.assertEqual(obj.intfield, int_value)
@@ -356,10 +356,10 @@ class TestRegistry(TestCase):
     def test_overwrite_attributes(self):
         autofixture.register(SimpleModel, SimpleAutoFixture)
         for obj in autofixture.create(
-                SimpleModel, 10, field_generators={'name': 'bar'}):
+                SimpleModel, 10, field_generators={'name': generators.StaticGenerator('bar')}):
             self.assertEqual(obj.name, 'bar')
         obj = autofixture.create_one(
-            SimpleModel, field_generators={'name': 'bar'})
+            SimpleModel, field_generators={'name': generators.StaticGenerator('bar')})
         self.assertEqual(obj.name, 'bar')
 
 
