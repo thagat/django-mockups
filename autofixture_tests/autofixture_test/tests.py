@@ -182,7 +182,6 @@ class TestRelations(TestCase):
 
         filler = AutoFixture(
             M2MModel,
-            none_p=0,
             follow_m2m={
                 'm2m': (2, 10),
             })
@@ -193,7 +192,6 @@ class TestRelations(TestCase):
     def test_generate_m2m(self):
         filler = AutoFixture(
             M2MModel,
-            none_p=0,
             generate_m2m=(1, 5))
         all_m2m = set()
         all_secondm2m = set()
@@ -208,7 +206,6 @@ class TestRelations(TestCase):
     def test_generate_only_some_m2m(self):
         filler = AutoFixture(
             M2MModel,
-            none_p=0,
             generate_m2m={
                 'm2m': (1, 5),
             })

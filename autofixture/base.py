@@ -81,7 +81,6 @@ class AutoFixture(object):
     follow_m2m = {'ALL': (1,5)}
     generate_m2m = False
 
-    none_p = 0.2
     tries = 1000
 
     field_to_generator = SortedDict((
@@ -105,7 +104,7 @@ class AutoFixture(object):
         constraints.unique_together_constraint]
 
     def __init__(self, model,
-            field_values=None, none_p=None, overwrite_defaults=None,
+            field_values=None, overwrite_defaults=None,
             constraints=None, follow_fk=None, generate_fk=None,
             follow_m2m=None, generate_m2m=None):
         '''
@@ -116,9 +115,6 @@ class AutoFixture(object):
             keys. Values may be static values that are assigned to the field,
             a ``Generator`` instance that generates a value on the fly or a
             callable which takes no arguments and returns the wanted value.
-
-            ``none_p``: The chance (between 0 and 1, 1 equals 100%) to
-            assign ``None`` to nullable fields.
 
             ``overwrite_defaults``: All default values of fields are preserved
             by default. If set to ``True``, default values will be treated
@@ -156,8 +152,6 @@ class AutoFixture(object):
         self.field_values.update(self.__class__.field_values.copy())
         self.field_values.update(field_values or {})
         self.constraints = constraints or []
-        if none_p is not None:
-            self.none_p = none_p
         if overwrite_defaults is not None:
             self.overwrite_defaults = overwrite_defaults
 
@@ -242,8 +236,6 @@ class AutoFixture(object):
                 return generators.CallableGenerator(value=value)
             return generators.StaticGenerator(value=value)
 
-        if field.null:
-            kwargs['empty_p'] = self.none_p
         if field.choices:
             return generators.ChoicesGenerator(choices=field.choices, **kwargs)
         if isinstance(field, related.ForeignKey):
