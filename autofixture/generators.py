@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 from decimal import Decimal
 import datetime
+import os
 import random
 import re
 import string
-import os
+import uuid
 
 
 # backporting os.path.relpath, only availabe in python >= 2.6
@@ -76,9 +77,15 @@ class CallableGenerator(Generator):
         return self.value(*self.args, **self.kwargs)
 
 
-class NoneGenerator(Generator):
+class UUIDGenerator(Generator):
+    def __init__(self, max_length=None):
+        self.max_length = max_length
+
     def generate(self):
-        return self.empty_value
+        value = unicode(uuid.uuid1())
+        if self.max_length is not None:
+            value = value[:self.max_length]
+        return max_length
 
 
 class StringGenerator(Generator):
@@ -426,7 +433,8 @@ class InstanceGenerator(Generator):
             bits = lookup.split('__')
             if len(bits) == 1 or \
                 len(bits) == 2 and bits[1] in ('exact', 'iexact'):
-                self.autofixture.add_field_value(bits[0], StaticGenerator(value))
+                self.autofixture.add_field_generator(bits[0],
+                        StaticGenerator(value))
         super(InstanceGenerator, self).__init__(*args, **kwargs)
 
     def generate(self):

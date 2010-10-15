@@ -59,6 +59,24 @@ class Link(object):
         return Link(fields, default=self.default)
 
 
+def get_declared_generators(bases, attrs):
+    field_generators = {}
+    for base in bases[::-1]:
+        if hasattr(base, 'field_generators'):
+            field_generators.update(base.field_generators)
+    for k, v in attrs.items():
+        if isinstance(v, generators.Generator):
+            field_generators[k] = attrs.pop(k)
+    return field_generators
+
+
+class DeclarativeGeneratorsMetaclass(type):
+    def __new__(cls, name, bases, attrs):
+        attrs['field_generators'] = get_declared_generators(bases, attrs)
+        uber = super(DeclarativeGeneratorsMetaclass, cls)
+        return uber.__new__(cls, name, bases, attrs)
+
+
 class AutoFixture(object):
     '''
     .. We don't support the following fields yet:
@@ -69,6 +87,9 @@ class AutoFixture(object):
 
         Patches are welcome.
     '''
+
+    __metaclass__ = DeclarativeGeneratorsMetaclass
+
     class IGNORE_FIELD(object):
         pass
 
@@ -94,21 +115,21 @@ class AutoFixture(object):
         (fields.TimeField, generators.TimeGenerator),
     ))
 
-    field_values = {}
+    field_generators = {}
 
     default_constraints = [
         constraints.unique_constraint,
         constraints.unique_together_constraint]
 
     def __init__(self, model,
-            field_values=None, overwrite_defaults=None,
+            field_generators=None, overwrite_defaults=None,
             constraints=None, follow_fk=None, generate_fk=None,
             follow_m2m=None, generate_m2m=None):
         '''
         Parameters:
             ``model``: A model class which is used to create the test data.
 
-            ``field_values``: A dictionary with field names of ``model`` as
+            ``field_generators``: A dictionary with field names of ``model`` as
             keys. Values may be static values that are assigned to the field,
             a ``Generator`` instance that generates a value on the fly or a
             callable which takes no arguments and returns the wanted value.
@@ -143,7 +164,7 @@ class AutoFixture(object):
             will be ignored if this parameter is set.
         '''
         self.model = model
-        self.field_values.update(field_values or {})
+        self.field_generators.update(field_generators or {})
         self.constraints = constraints or []
         if overwrite_defaults is not None:
             self.overwrite_defaults = overwrite_defaults
@@ -192,12 +213,12 @@ class AutoFixture(object):
         '''
         pass
 
-    def add_field_value(self, name, value):
+    def add_field_generator(self, name, value):
         '''
         Pass a static *value* that should be assigned to the field called
         *name*. *value* may be a :ref:`Generator <Generator>` instance.
         '''
-        self.field_values[name] = value
+        self.field_generators[name] = value
 
     def add_constraint(self, constraint):
         '''
@@ -219,8 +240,8 @@ class AutoFixture(object):
                 return None
         kwargs = {}
 
-        if field.name in self.field_values:
-            value = self.field_values[field.name]
+        if field.name in self.field_generators:
+            value = self.field_generators[field.name]
             if isinstance(value, generators.Generator):
                 return value
             elif isinstance(value, AutoFixture):
@@ -245,7 +266,7 @@ class AutoFixture(object):
                     field.rel.to,
                     limit_choices_to=field.rel.limit_choices_to)
             if field.blank or field.null:
-                return generators.NoneGenerator()
+                return generators.StaticGenerator(None)
             raise CreateInstanceError(
                 u'Cannot resolve ForeignKey "%s" to "%s". Provide either '
                 u'"follow_fk" or "generate_fk" parameters.' % (
@@ -382,7 +403,7 @@ class AutoFixture(object):
             intermediary_model = generators.MultipleInstanceGenerator(
                 get_autofixture(
                     through,
-                    field_values={
+                    field_generators={
                         self_fk.name: instance,
                         related_fk.name: generators.InstanceGenerator(
                             get_autofixture(field.rel.to))

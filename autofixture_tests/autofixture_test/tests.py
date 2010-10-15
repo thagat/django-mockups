@@ -9,13 +9,11 @@ from autofixture_tests.autofixture_test.models import y2k
 from autofixture_tests.autofixture_test.models import (
     SimpleModel, OtherSimpleModel, DeepLinkModel1, DeepLinkModel2,
     NullableFKModel, BasicModel, UniqueTestModel, UniqueTogetherTestModel,
-    RelatedModel, O2OModel, M2MModel, ThroughModel, M2MModelThrough) 
+    RelatedModel, O2OModel, M2MModel, ThroughModel, M2MModelThrough)
 
 
 class SimpleAutoFixture(AutoFixture):
-    field_values = {
-        'name': generators.StaticGenerator('foo'),
-    }
+    name = generators.StaticGenerator('foo')
 
 
 class TestBasicModel(TestCase):
@@ -58,12 +56,12 @@ class TestBasicModel(TestCase):
             self.assertTrue(len(obj.ipaddressfield) >= 7)
         self.assertEqual(BasicModel.objects.count(), 100)
 
-    def test_field_values(self):
+    def test_field_generators(self):
         int_value = 1
         char_values = (u'a', u'b')
         filler = AutoFixture(
             BasicModel,
-            field_values={
+            field_generators={
                 'intfield': 1,
                 'chars': generators.ChoicesGenerator(values=char_values),
                 'shortchars': lambda: u'ab',
@@ -358,10 +356,10 @@ class TestRegistry(TestCase):
     def test_overwrite_attributes(self):
         autofixture.register(SimpleModel, SimpleAutoFixture)
         for obj in autofixture.create(
-                SimpleModel, 10, field_values={'name': 'bar'}):
+                SimpleModel, 10, field_generators={'name': 'bar'}):
             self.assertEqual(obj.name, 'bar')
         obj = autofixture.create_one(
-            SimpleModel, field_values={'name': 'bar'})
+            SimpleModel, field_generators={'name': 'bar'})
         self.assertEqual(obj.name, 'bar')
 
 
