@@ -27,9 +27,7 @@ class TestBasicModel(TestCase):
         self.assertEqual(BasicModel.objects.count(), 10)
 
     def test_constraints(self):
-        filler = AutoFixture(
-            BasicModel,
-            overwrite_defaults=False)
+        filler = AutoFixture(BasicModel)
         for obj in filler.create(100):
             self.assertTrue(len(obj.chars) > 0)
             self.assertEqual(type(obj.chars), unicode)
@@ -377,7 +375,6 @@ class TestManagementCommand(TestCase):
         from autofixture.management.commands.loadtestdata import Command
         self.command = Command()
         self.options = {
-            'overwrite_defaults': None,
             'no_follow_fk': None,
             'no_follow_m2m': None,
             'generate_fk': None,

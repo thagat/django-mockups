@@ -41,10 +41,6 @@ class Command(BaseCommand):
     args = 'app.Model:# [app.Model:# ...]'
 
     option_list = BaseCommand.option_list + (
-        make_option('-d', '--overwrite-defaults', action='store_true',
-            dest='overwrite_defaults', default=None, help=
-                u'Generate values for fields with default values. Default is '
-                u'to use default values.'),
         make_option('--no-follow-fk', action='store_true', dest='no_follow_fk',
             default=None, help=
                 u'Ignore foreignkeys while creating model instances.'),
@@ -180,7 +176,6 @@ class Command(BaseCommand):
             use = use.split('.')
             use = getattr(import_module('.'.join(use[:-1])), use[-1])
 
-        overwrite_defaults = options['overwrite_defaults']
         self.verbosity = int(options['verbosity'])
 
         models = []
@@ -209,7 +204,6 @@ class Command(BaseCommand):
         autofixture.autodiscover()
 
         kwargs = {
-            'overwrite_defaults': overwrite_defaults,
             'follow_fk': follow_fk,
             'generate_fk': generate_fk,
             'follow_m2m': follow_m2m,

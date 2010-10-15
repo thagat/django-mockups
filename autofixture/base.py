@@ -93,7 +93,6 @@ class AutoFixture(object):
     class IGNORE_FIELD(object):
         pass
 
-    overwrite_defaults = False
     follow_fk = True
     generate_fk = False
     follow_m2m = {'ALL': (1,5)}
@@ -121,10 +120,9 @@ class AutoFixture(object):
         constraints.unique_constraint,
         constraints.unique_together_constraint]
 
-    def __init__(self, model,
-            field_generators=None, overwrite_defaults=None,
-            constraints=None, follow_fk=None, generate_fk=None,
-            follow_m2m=None, generate_m2m=None):
+    def __init__(self, model, field_generators=None, constraints=None,
+            follow_fk=None, generate_fk=None, follow_m2m=None,
+            generate_m2m=None):
         '''
         Parameters:
             ``model``: A model class which is used to create the test data.
@@ -133,10 +131,6 @@ class AutoFixture(object):
             keys. Values may be static values that are assigned to the field,
             a ``Generator`` instance that generates a value on the fly or a
             callable which takes no arguments and returns the wanted value.
-
-            ``overwrite_defaults``: All default values of fields are preserved
-            by default. If set to ``True``, default values will be treated
-            like any other field.
 
             ``constraints``: A list of callables. The constraints are used to
             verify if the created model instance may be used. The callable
@@ -166,8 +160,6 @@ class AutoFixture(object):
         self.model = model
         self.field_generators.update(field_generators or {})
         self.constraints = constraints or []
-        if overwrite_defaults is not None:
-            self.overwrite_defaults = overwrite_defaults
 
         if follow_fk is not None:
             self.follow_fk = follow_fk
@@ -239,9 +231,8 @@ class AutoFixture(object):
 
         if isinstance(field, fields.AutoField):
             return None
-        if field.default is not fields.NOT_PROVIDED and \
-            not self.overwrite_defaults:
-                return None
+        if field.default is not fields.NOT_PROVIDED:
+            return None
 
         if field.choices:
             return generators.ChoicesGenerator(choices=field.choices)
