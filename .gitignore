@@ -11,3 +11,4 @@ src/*.egg-info
 docs/_build
 *.pyc
 *.swp
+*.swo

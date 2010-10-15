@@ -1,48 +1,47 @@
 ==================
-django-autofixture
+django-mockups
 ==================
 
 This app aims to provide a simple way of loading masses of randomly generated
 test data into your development database. You can use a management command to
 load test data through command line.
 
-It is named *autofixture* because of the similarity of how I mainly used
-django's fixtures. Usually you add test data through the admin to see how your
-site looks with non static pages. You export data by using ``dumpdata`` to
-send it to your colleagues or to preserve it before you make a ``manage.py
-reset app`` and so on. Your site gets more and more complex and adding test
-data gets more and more annoying.
+Usually you add test data through the admin to see how your site looks with non
+static pages. You export data by using ``dumpdata`` to send it to your
+colleagues or to preserve it before you make a ``manage.py reset app`` and so
+on. Your site gets more and more complex and adding test data gets more and
+more annoying.
 
-This is the usecase where autofixtures should help you to save time that can
+This is the usecase where mockups should help you to save time that can
 actually be spent on hacking.
 
 
 Installation
 ============
 
-You must make the ``autofixture`` package available on your python path.
-Either drop it into your project directory or install it from the python
-package index with ``pip install django-autofixture``. You can also use
-``easy_install django-autofixture`` if you don't have pip available.
+You must make the ``mockups`` package available on your python path.  Either
+drop it into your project directory or install it from the python package index
+with ``pip install django-mockups``. You can also use ``easy_install
+django-mockups`` if you don't have pip available.
 
-To use the management command you must add ``'autofixture'`` to the
+To use the management command you must add ``'mockups'`` to the
 ``INSTALLED_APPS`` setting in your django settings file. You don't need to do
-this if you want to use the ``autofixture`` package only as library.
+this if you want to use the ``mockups`` package only as library.
 
 
 Management command
 ==================
 
-The ``loadtestdata`` accepts the following syntax::
+The ``mockups`` accepts the following syntax::
 
-    django-admin.py loadtestdata [options] app.Model:# [app.Model:# ...]
+    django-admin.py mockups [options] app.Model:# [app.Model:# ...]
 
 Its nearly self explanatory. Supply names of models, prefixed with its app
 name. After that, place a colon and tell the command how many objects you want
 to create. Here is an example how to create three categories and twenty
 entries for you blogging app::
 
-    django-admin.py loadtestdata blog.Category:3 blog.Entry:20
+    django-admin.py mockups blog.Category:3 blog.Entry:20
 
 Voila! You have ready to use testing data populated to your database. The
 model fields are filled with data by producing randomly generated values
@@ -56,13 +55,13 @@ populated with existing data or if the related models are also generated on
 the fly. Please have a look at the help page of the command for more
 information::
 
-    django-admin.py help loadtestdata
+    django-admin.py help mockups
 
 
-Using autofixtures as tool for unittests
+Using mockups as tool for unittests
 ========================================
 
-It has proofed that autofixtures have a great use for unittests. It has always
+It has proofed that mockups have a great use for unittests. It has always
 bugged me that creating complex models for testing their behaviour was
 complicated. Sometimes models have strict restrictions or many related objects
 which they depend on. One solution would be to use traditional fixtures
@@ -70,34 +69,34 @@ dumped from your production database. But while in development when database
 schemes are changing frequently, its hard to maintain all fixtures and to know
 exactly which objects are contained in the dumps etc...
 
-Autofixtures to the rescue! It lets you automatically generate models and all
+Mockups to the rescue! It lets you automatically generate models and all
 of their dependecies on the fly. Have a look at the following examples.
 
-Lets start with the very basics. We create an ``AutoFixture`` instance for the
+Lets start with the very basics. We create a ``Mockup`` instance for the
 ``Entry`` model and tell it to create ten model instances::
 
-    from autofixture import AutoFixture
-    fixture = AutoFixture(Entry)
-    entries = fixture.create(10)
+    from mockups import Mockup
+    mockup = Mockup(Entry)
+    entries = mockup.create(10)
 
 Now you can play around and test your blog entries. By default dependecies of
 foreignkeys and many to many relations are solved by randomly selecting an
 already existing object of the related model. What if you don't have one yet?
-You can provide the ``generate_fk`` attribute which allows the autofixture
+You can provide the ``generate_fk`` attribute which allows the mockup
 instance to follow foreignkeys by generating new related models::
 
-    fixture = AutoFixture(Entry, generate_fk=True)
+    mockup = Mockup(Entry, generate_fk=True)
 
 This generates new instance for *all* foreignkey fields of ``Entry``. Its
 possible to limit this behaviour to single fields::
 
-    fixture = AutoFixture(Entry, generate_fk=['author'])
+    mockup = Mockup(Entry, generate_fk=['author'])
 
 This will only create new authors automatically and doesn't touch other
 tables. The same is possible with many to many fields. But you need
 additionally specify how many objects should be created for the m2m relation::
 
-    fixture = AutoFixture(Entry, generate_m2m={'categories': (1,3)})
+    mockup = Mockup(Entry, generate_m2m={'categories': (1,3)})
 
 All created entry models get one to three new categories assigned.
 
@@ -105,11 +104,12 @@ Setting custom values for fields
 --------------------------------
 
 However its often necessary to be sure that a specific field must have a
-specific value. This is easily achieved with the ``field_values`` attribute of
-``AutoFixture``::
+specific value. This is easily achieved with the ``field_generators`` attribute of
+``Mockup``::
 
-    fixture = AutoFixture(Entry,
-        field_values={'pub_date': datetime(2010, 2, 1)})
+    mockup = Mockup(Entry, field_generators={
+        'pub_date': datetime(2010, 2, 1)
+    })
 
 
 More
@@ -118,8 +118,8 @@ More
 There is so much more to explore which might be useful for you and your
 projects:
 
-* There are ways to register custom ``AutoFixture`` subclasses with models
-  that are automatically used when calling ``loadtestdata`` on the model.
+* There are ways to register custom ``Mockup`` subclasses with models
+  that are automatically used when calling ``mockups`` on the model.
 * More control for related models, even with relations of related models...
   (e.g. by using ``generate_fk=['author', 'author__user']``)
 * Custom constraints that are used to ensure that created the models are
@@ -128,23 +128,7 @@ projects:
 
 I hope to explain this in the future with more details in a documentation. It
 will be written but is not finished yet. I wanted to get this project out to
-support you in development. But since its only python code you can easily
-study the source on your own and see in which ways it can be used. There are
-already some parts documented with doc strings which might also be helpful for you.
+support you in development. But since its only python code you can easily study
+the source on your own and see in which ways it can be used. There are already
+some parts documented with doc strings which might also be helpful for you.
 
-
-Future development
-==================
-
-The ``autofixture`` app is nearly feature complete from the point I wanted to
-have while starting development. But there is still much room for
-improvements. One feature you can expect in the future is for example support
-for multiple databases which was introduced by django 1.2. If you have any
-ideas or interests to contribute: Feel free to contact me or just start
-hacking.
-
-Email me (gregor@muellegger.de), contact me on twitter
-(@gregmuellegger) or fork the git repository on github (``git clone
-git://github.com/gregmuellegger/django-autofixture.git``).
-
-Happy autofixturing!

@@ -3,8 +3,8 @@
 Howto use the library
 =====================
 
-Its easy to get started with the :doc:`loadtestdata management command
-<loadtestdata>` but its quite limited if you want to have more control of how
+Its easy to get started with the :doc:`mockups management command
+<mockups>` but its quite limited if you want to have more control of how
 your test data should be created. This chapter describes how you use the
 library in your python environment like the shell, a custom script or in
 unittests.
@@ -12,31 +12,31 @@ unittests.
 Creating model instances
 ------------------------
 
-The :mod:`autofixture` module contains a few shortcuts to make the creation of
+The :mod:`mockups` module contains a few shortcuts to make the creation of
 test data as fast as possible.
 
 .. _shortcuts:
 
-.. autofunction:: autofixture.create
+.. autofunction:: mockups.create
 
-.. autofunction:: autofixture.create_one
+.. autofunction:: mockups.create_one
 
-.. _AutoFixture:
+.. _Mockup:
 
-Using the :class:`AutoFixture` class
-------------------------------------
+Using the Mockup class
+----------------------
 
-.. autoclass:: autofixture.base.AutoFixture
-   :members: __init__, add_field_value, add_constraint, check_constrains,
+.. autoclass:: mockups.base.Mockup
+   :members: __init__, add_field_generator, add_constraint, check_constrains,
        create, create_one
 
-Subclassing :class:`AutoFixture`
+Subclassing :class:`Mockup`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The following methods may be overwritten by subclasses:
 
-.. automethod:: autofixture.base.AutoFixture.prepare_class
+.. automethod:: mockups.base.Mockup.prepare_class
 
-.. automethod:: autofixture.base.AutoFixture.post_process_instance
+.. automethod:: mockups.base.Mockup.post_process_instance
 
-.. automethod:: autofixture.base.AutoFixture.get_generator
+.. automethod:: mockups.base.Mockup.get_generator

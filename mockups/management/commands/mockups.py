@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 '''
-Use the ``loadtestdata`` command like this::
+Use the ``mockups`` command like this::
 
-    django-admin.py loadtestdata [options] app.Model:# [app.Model:# ...]
+    django-admin.py mockups [options] app.Model:# [app.Model:# ...]
 
 Its nearly self explanatory. Supply names of models, prefixed with their app
 name. After that, place a colon and tell the command how many objects you want
 to create. Here is an example of how to create three categories and twenty
 entries for you blogging app::
 
-    django-admin.py loadtestdata blog.Category:3 blog.Entry:20
+    django-admin.py mockups blog.Category:3 blog.Entry:20
 
 Voila! You have ready to use testing data populated to your database. The
 model fields are filled with data by producing randomly generated values
@@ -23,14 +23,13 @@ populated with existing data or if the related models are also generated on
 the fly. Please have a look at the help page of the command for more
 information::
 
-    django-admin.py help loadtestdata
+    django-admin.py help mockups
 '''
-import autofixture
+from django.core.management.base import BaseCommand, CommandError
 from django.db import models
 from django.db.transaction import commit_on_success
-from django.core.management.base import BaseCommand, CommandError
 from django.utils.importlib import import_module
-from autofixture import signals
+from ..mockups import create, signals, autodiscover
 from optparse import make_option
 
 
@@ -73,8 +72,8 @@ class Command(BaseCommand):
                 u'field1:min:max,field2:min:max ...'),
         make_option('-u', '--use', action='store', dest='use',
             default='', help=
-                u'Specify a autofixture subclass that is used to create the '
-                u'test data. E.g. myapp.autofixtures.MyAutoFixture'),
+                u'Specify a mockup subclass that is used to create the '
+                u'test data. E.g. myapp.mockup.MyMockup'),
     )
 
     def format_output(self, obj):
@@ -201,7 +200,7 @@ class Command(BaseCommand):
         signals.instance_created.connect(
             self.print_instance)
 
-        autofixture.autodiscover()
+        autodiscover()
 
         kwargs = {
             'follow_fk': follow_fk,
@@ -212,8 +211,8 @@ class Command(BaseCommand):
 
         for model, count in models:
             if use:
-                fixture = use(model, **kwargs)
-                fixture.create(count)
+                mockup = use(model, **kwargs)
+                mockup.create(count)
             else:
-                autofixture.create(model, count, **kwargs)
+                create(model, count, **kwargs)
 

@@ -426,19 +426,19 @@ class InstanceGenerator(Generator):
         fieldname__exact: value
         fieldname__iexact: value
     '''
-    def __init__(self, autofixture, limit_choices_to=None, *args, **kwargs):
-        self.autofixture = autofixture
+    def __init__(self, mockup, limit_choices_to=None, *args, **kwargs):
+        self.mockup = mockup
         limit_choices_to = limit_choices_to or {}
         for lookup, value in limit_choices_to.items():
             bits = lookup.split('__')
             if len(bits) == 1 or \
                 len(bits) == 2 and bits[1] in ('exact', 'iexact'):
-                self.autofixture.add_field_generator(bits[0],
+                self.mockup.add_field_generator(bits[0],
                         StaticGenerator(value))
         super(InstanceGenerator, self).__init__(*args, **kwargs)
 
     def generate(self):
-        return self.autofixture.create()[0]
+        return self.mockup.create()[0]
 
 
 class MultipleInstanceGenerator(InstanceGenerator):

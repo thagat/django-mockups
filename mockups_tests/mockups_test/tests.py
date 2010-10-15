@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
-import autofixture
+import mockups
 from decimal import Decimal
 from datetime import date, datetime
 from django.test import TestCase
-from autofixture import generators
-from autofixture.base import AutoFixture, CreateInstanceError,  Link
-from autofixture_tests.autofixture_test.models import y2k
-from autofixture_tests.autofixture_test.models import (
+from mockups import generators
+from mockups.base import Mockup, CreateInstanceError,  Link
+from mockups_tests.mockups_test.models import y2k
+from mockups_tests.mockups_test.models import (
     SimpleModel, OtherSimpleModel, DeepLinkModel1, DeepLinkModel2,
     NullableFKModel, BasicModel, UniqueTestModel, UniqueTogetherTestModel,
     RelatedModel, O2OModel, M2MModel, ThroughModel, M2MModelThrough)
 
 
-class SimpleAutoFixture(AutoFixture):
+class SimpleMockup(Mockup):
     name = generators.StaticGenerator('foo')
 
 
@@ -22,12 +22,12 @@ class TestBasicModel(TestCase):
             self.fail()
 
     def test_create(self):
-        filler = AutoFixture(BasicModel)
+        filler = Mockup(BasicModel)
         filler.create(10)
         self.assertEqual(BasicModel.objects.count(), 10)
 
     def test_constraints(self):
-        filler = AutoFixture(BasicModel)
+        filler = Mockup(BasicModel)
         for obj in filler.create(100):
             self.assertTrue(len(obj.chars) > 0)
             self.assertEqual(type(obj.chars), unicode)
@@ -57,7 +57,7 @@ class TestBasicModel(TestCase):
     def test_field_generators(self):
         int_value = 1
         char_values = (u'a', u'b')
-        filler = AutoFixture(
+        filler = Mockup(
             BasicModel,
             field_generators={
                 'intfield': generators.StaticGenerator(1),
@@ -72,7 +72,7 @@ class TestBasicModel(TestCase):
 
 class TestRelations(TestCase):
     def test_generate_foreignkeys(self):
-        filler = AutoFixture(
+        filler = Mockup(
             RelatedModel,
             generate_fk=True)
         for obj in filler.create(100):
@@ -80,7 +80,7 @@ class TestRelations(TestCase):
             self.assertEqual(obj.limitedfk.name, 'foo')
 
     def test_deep_generate_foreignkeys(self):
-        filler = AutoFixture(
+        filler = Mockup(
             DeepLinkModel2,
             generate_fk=True)
         for obj in filler.create(10):
@@ -89,7 +89,7 @@ class TestRelations(TestCase):
             self.assertEqual(obj.related.related2.__class__, SimpleModel)
 
     def test_deep_generate_foreignkeys2(self):
-        filler = AutoFixture(
+        filler = Mockup(
             DeepLinkModel2,
             follow_fk=False,
             generate_fk=('related', 'related__related'))
@@ -99,7 +99,7 @@ class TestRelations(TestCase):
             self.assertEqual(obj.related.related2, None)
 
     def test_generate_only_some_foreignkeys(self):
-        filler = AutoFixture(
+        filler = Mockup(
             RelatedModel,
             generate_fk=('related',))
         for obj in filler.create(100):
@@ -107,13 +107,13 @@ class TestRelations(TestCase):
             self.assertEqual(obj.limitedfk, None)
 
     def test_follow_foreignkeys(self):
-        related = AutoFixture(BasicModel).create()[0]
+        related = Mockup(BasicModel).create()[0]
         self.assertEqual(BasicModel.objects.count(), 1)
 
         simple = SimpleModel.objects.create(name='foo')
         simple2 = SimpleModel.objects.create(name='bar')
 
-        filler = AutoFixture(
+        filler = Mockup(
             RelatedModel,
             follow_fk=True)
         for obj in filler.create(100):
@@ -121,13 +121,13 @@ class TestRelations(TestCase):
             self.assertEqual(obj.limitedfk, simple)
 
     def test_follow_only_some_foreignkeys(self):
-        related = AutoFixture(BasicModel).create()[0]
+        related = Mockup(BasicModel).create()[0]
         self.assertEqual(BasicModel.objects.count(), 1)
 
         simple = SimpleModel.objects.create(name='foo')
         simple2 = SimpleModel.objects.create(name='bar')
 
-        filler = AutoFixture(
+        filler = Mockup(
             RelatedModel,
             follow_fk=('related',))
         for obj in filler.create(100):
@@ -136,7 +136,7 @@ class TestRelations(TestCase):
 
     def test_follow_fk_for_o2o(self):
         # OneToOneField is the same as a ForeignKey with unique=True
-        filler = AutoFixture(O2OModel, follow_fk=True)
+        filler = Mockup(O2OModel, follow_fk=True)
 
         simple = SimpleModel.objects.create()
         obj = filler.create()[0]
@@ -146,7 +146,7 @@ class TestRelations(TestCase):
 
     def test_generate_fk_for_o2o(self):
         # OneToOneField is the same as a ForeignKey with unique=True
-        filler = AutoFixture(O2OModel, generate_fk=True)
+        filler = Mockup(O2OModel, generate_fk=True)
 
         all_o2o = set()
         for obj in filler.create(10):
@@ -155,22 +155,22 @@ class TestRelations(TestCase):
         self.assertEqual(set(SimpleModel.objects.all()), all_o2o)
 
     def test_follow_m2m(self):
-        related = AutoFixture(SimpleModel).create()[0]
+        related = Mockup(SimpleModel).create()[0]
         self.assertEqual(SimpleModel.objects.count(), 1)
 
-        filler = AutoFixture(
+        filler = Mockup(
             M2MModel,
             follow_m2m=(2, 10))
         for obj in filler.create(10):
             self.assertEqual(list(obj.m2m.all()), [related])
 
     def test_follow_only_some_m2m(self):
-        related = AutoFixture(SimpleModel).create()[0]
+        related = Mockup(SimpleModel).create()[0]
         self.assertEqual(SimpleModel.objects.count(), 1)
-        other_related = AutoFixture(OtherSimpleModel).create()[0]
+        other_related = Mockup(OtherSimpleModel).create()[0]
         self.assertEqual(OtherSimpleModel.objects.count(), 1)
 
-        filler = AutoFixture(
+        filler = Mockup(
             M2MModel,
             follow_m2m={
                 'm2m': (2, 10),
@@ -180,7 +180,7 @@ class TestRelations(TestCase):
             self.assertEqual(list(obj.secondm2m.all()), [])
 
     def test_generate_m2m(self):
-        filler = AutoFixture(
+        filler = Mockup(
             M2MModel,
             generate_m2m=(1, 5))
         all_m2m = set()
@@ -194,7 +194,7 @@ class TestRelations(TestCase):
         self.assertEqual(OtherSimpleModel.objects.count(), len(all_secondm2m))
 
     def test_generate_only_some_m2m(self):
-        filler = AutoFixture(
+        filler = Mockup(
             M2MModel,
             generate_m2m={
                 'm2m': (1, 5),
@@ -210,7 +210,7 @@ class TestRelations(TestCase):
         self.assertEqual(OtherSimpleModel.objects.count(), len(all_secondm2m))
 
     def test_generate_m2m_with_intermediary_model(self):
-        filler = AutoFixture(
+        filler = Mockup(
             M2MModelThrough,
             generate_m2m=(1, 5))
         all_m2m = set()
@@ -222,14 +222,14 @@ class TestRelations(TestCase):
 
 class TestUniqueConstraints(TestCase):
     def test_unique_field(self):
-        filler = AutoFixture(UniqueTestModel)
+        filler = Mockup(UniqueTestModel)
         count = len(filler.model._meta.
             get_field_by_name('choice1')[0].choices)
         for obj in filler.create(count):
             pass
 
     def test_unique_together(self):
-        filler = AutoFixture(UniqueTogetherTestModel)
+        filler = Mockup(UniqueTogetherTestModel)
         count1 = len(filler.model._meta.
             get_field_by_name('choice1')[0].choices)
         count2 = len(filler.model._meta.
@@ -240,7 +240,7 @@ class TestUniqueConstraints(TestCase):
 
 class TestGenerators(TestCase):
     def test_instance_selector(self):
-        AutoFixture(SimpleModel).create(10)
+        Mockup(SimpleModel).create(10)
 
         result = generators.InstanceSelector(SimpleModel).generate()
         self.assertEqual(result.__class__, SimpleModel)
@@ -333,46 +333,46 @@ class TestLinkClass(TestCase):
 
 class TestRegistry(TestCase):
     def setUp(self):
-        self.original_registry = autofixture.helpers._registry
-        autofixture.helpers._registry = {}
+        self.original_registry = mockups.helpers._registry
+        mockups.helpers._registry = {}
 
     def tearDown(self):
-        autofixture.helpers._registry = self.original_registry
+        mockups.helpers._registry = self.original_registry
 
     def test_registration(self):
-        autofixture.register(SimpleModel, SimpleAutoFixture)
-        self.assertTrue(SimpleModel in autofixture.helpers._registry)
-        self.assertEqual(autofixture.helpers._registry[SimpleModel], SimpleAutoFixture)
+        mockups.register(SimpleModel, SimpleMockup)
+        self.assertTrue(SimpleModel in mockups.helpers._registry)
+        self.assertEqual(mockups.helpers._registry[SimpleModel], SimpleMockup)
 
     def test_create(self):
-        autofixture.register(SimpleModel, SimpleAutoFixture)
-        for obj in autofixture.create(SimpleModel, 10):
+        mockups.register(SimpleModel, SimpleMockup)
+        for obj in mockups.create(SimpleModel, 10):
             self.assertEqual(obj.name, 'foo')
-        obj = autofixture.create_one(SimpleModel)
+        obj = mockups.create_one(SimpleModel)
         self.assertEqual(obj.name, 'foo')
 
     def test_overwrite_attributes(self):
-        autofixture.register(SimpleModel, SimpleAutoFixture)
-        for obj in autofixture.create(
+        mockups.register(SimpleModel, SimpleMockup)
+        for obj in mockups.create(
                 SimpleModel, 10, field_generators={'name': generators.StaticGenerator('bar')}):
             self.assertEqual(obj.name, 'bar')
-        obj = autofixture.create_one(
+        obj = mockups.create_one(
             SimpleModel, field_generators={'name': generators.StaticGenerator('bar')})
         self.assertEqual(obj.name, 'bar')
 
 
-class TestAutofixtureAPI(TestCase):
+class TestMockupAPI(TestCase):
     def setUp(self):
-        self.original_registry = autofixture.helpers._registry
-        autofixture.helpers._registry = {}
+        self.original_registry = mockups.helpers._registry
+        mockups.helpers._registry = {}
 
     def tearDown(self):
-        autofixture.helpers._registry = self.original_registry
+        mockups.helpers._registry = self.original_registry
 
 
 class TestManagementCommand(TestCase):
     def setUp(self):
-        from autofixture.management.commands.loadtestdata import Command
+        from mockups.management.commands.mockups import Command
         self.command = Command()
         self.options = {
             'no_follow_fk': None,
@@ -383,11 +383,11 @@ class TestManagementCommand(TestCase):
             'verbosity': '0',
             'use': '',
         }
-        self.original_registry = autofixture.helpers._registry
-        autofixture.helpers._registry = {}
+        self.original_registry = mockups.helpers._registry
+        mockups.helpers._registry = {}
 
     def tearDown(self):
-        autofixture.helpers._registry = self.original_registry
+        mockups.helpers._registry = self.original_registry
 
     def test_basic(self):
         models = ()
@@ -395,16 +395,16 @@ class TestManagementCommand(TestCase):
         self.command.handle(*models, **self.options)
         self.assertEqual(SimpleModel.objects.count(), 0)
 
-        models = ('autofixture_test.SimpleModel:1',)
+        models = ('mockups_test.SimpleModel:1',)
         self.command.handle(*models, **self.options)
         self.assertEqual(SimpleModel.objects.count(), 1)
 
-        models = ('autofixture_test.SimpleModel:5',)
+        models = ('mockups_test.SimpleModel:5',)
         self.command.handle(*models, **self.options)
         self.assertEqual(SimpleModel.objects.count(), 6)
 
     def test_generate_fk(self):
-        models = ('autofixture_test.DeepLinkModel2:1',)
+        models = ('mockups_test.DeepLinkModel2:1',)
         self.options['generate_fk'] = 'related,related__related'
         self.command.handle(*models, **self.options)
         obj = DeepLinkModel2.objects.get()
@@ -413,7 +413,7 @@ class TestManagementCommand(TestCase):
         self.assertEqual(obj.related.related2, obj.related.related)
 
     def test_generate_fk_with_no_follow(self):
-        models = ('autofixture_test.DeepLinkModel2:1',)
+        models = ('mockups_test.DeepLinkModel2:1',)
         self.options['generate_fk'] = 'related,related__related'
         self.options['no_follow_fk'] = True
         self.command.handle(*models, **self.options)
@@ -423,7 +423,7 @@ class TestManagementCommand(TestCase):
         self.assertEqual(obj.related.related2, None)
 
     def test_generate_fk_with_ALL(self):
-        models = ('autofixture_test.DeepLinkModel2:1',)
+        models = ('mockups_test.DeepLinkModel2:1',)
         self.options['generate_fk'] = 'ALL'
         self.command.handle(*models, **self.options)
         obj = DeepLinkModel2.objects.get()
@@ -433,19 +433,19 @@ class TestManagementCommand(TestCase):
         self.assertTrue(obj.related.related != obj.related.related2)
 
     def test_no_follow_m2m(self):
-        AutoFixture(SimpleModel).create(1)
+        Mockup(SimpleModel).create(1)
 
-        models = ('autofixture_test.NullableFKModel:1',)
+        models = ('mockups_test.NullableFKModel:1',)
         self.options['no_follow_m2m'] = True
         self.command.handle(*models, **self.options)
         obj = NullableFKModel.objects.get()
         self.assertEqual(obj.m2m.count(), 0)
 
     def test_follow_m2m(self):
-        AutoFixture(SimpleModel).create(10)
-        AutoFixture(OtherSimpleModel).create(10)
+        Mockup(SimpleModel).create(10)
+        Mockup(OtherSimpleModel).create(10)
 
-        models = ('autofixture_test.M2MModel:25',)
+        models = ('mockups_test.M2MModel:25',)
         self.options['follow_m2m'] = 'm2m:3:3,secondm2m:0:10'
         self.command.handle(*models, **self.options)
 
@@ -454,7 +454,7 @@ class TestManagementCommand(TestCase):
             self.assertTrue(0 <= obj.secondm2m.count() <= 10)
 
     def test_generate_m2m(self):
-        models = ('autofixture_test.M2MModel:10',)
+        models = ('mockups_test.M2MModel:10',)
         self.options['generate_m2m'] = 'm2m:1:1,secondm2m:2:5'
         self.command.handle(*models, **self.options)
 
@@ -470,15 +470,15 @@ class TestManagementCommand(TestCase):
         self.assertEqual(all_secondm2m, set(OtherSimpleModel.objects.all()))
 
     def test_using_registry(self):
-        autofixture.register(SimpleModel, SimpleAutoFixture)
-        models = ('autofixture_test.SimpleModel:10',)
+        mockups.register(SimpleModel, SimpleMockup)
+        models = ('mockups_test.SimpleModel:10',)
         self.command.handle(*models, **self.options)
         for obj in SimpleModel.objects.all():
             self.assertEqual(obj.name, 'foo')
 
     def test_use_option(self):
-        self.options['use'] = 'autofixture_tests.autofixture_test.tests.SimpleAutoFixture'
-        models = ('autofixture_test.SimpleModel:10',)
+        self.options['use'] = 'mockups_tests.mockups_test.tests.SimpleMockup'
+        models = ('mockups_test.SimpleModel:10',)
         self.command.handle(*models, **self.options)
         for obj in SimpleModel.objects.all():
             self.assertEqual(obj.name, 'foo')

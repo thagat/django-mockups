@@ -12,20 +12,20 @@ __all__ = ('register', 'unregister', 'create', 'create_one', 'autodiscover')
 _registry = {}
 
 
-def get_autofixture(model, *args, **kwargs):
+def get_mockup(model, *args, **kwargs):
     '''
-    Gets an autofixture instance for a model
+    Gets an mockup instance for a model
     '''
     if model not in _registry:
-        from autofixture.base import AutoFixture
+        from mockups.base import Mockup
         warnings.warn('Model `%s` not in registry' % model.__name__)
-        cls = AutoFixture
+        cls = Mockup
     else:
         cls = _registry[model]
     return cls(model, *args, **kwargs)
 
 
-def register(model, autofixture_cls, overwrite=False, fail_silently=False):
+def register(model, mockup_cls, overwrite=False, fail_silently=False):
     '''
     Register a model with the registry.
 
@@ -34,7 +34,7 @@ def register(model, autofixture_cls, overwrite=False, fail_silently=False):
         *model* can be either a model class or a string that contains the model's
         app label and class name seperated by a dot, e.g. ``"app.ModelClass"``.
 
-        *autofixture_cls* is the :mod:`AutoFixture` subclass that shall be used to
+        *mockup_cls* is the :mod:`Mockup` subclass that shall be used to
         generated instances of *model*.
 
         By default :func:`register` will raise :exc:`ValueError` if the given
@@ -53,16 +53,16 @@ def register(model, autofixture_cls, overwrite=False, fail_silently=False):
             return
         raise ValueError(
             u'%s.%s is already registered. You can overwrite the registered '
-            u'autofixture class by providing the `overwrite` argument.' % (
+            u'mockup class by providing the `overwrite` argument.' % (
                 model._meta.app_label,
                 model._meta.object_name,
             ))
-    _registry[model] = autofixture_cls
+    _registry[model] = mockup_cls
 
 
 def unregister(model_or_iterable, fail_silently=False):
     '''
-    Remove one or more models from the autofixture registry.
+    Remove one or more models from the mockups registry.
     '''
     from django.db import models
     if not isinstance(model_or_iterable, (list, tuple, set)):
@@ -85,26 +85,28 @@ def unregister(model_or_iterable, fail_silently=False):
 def create(model, count, *args, **kwargs):
     '''
     Create *count* instances of *model* using the either an appropiate
-    autofixture that was :ref:`registry <registered>` or fall back to the
-    default:class:`AutoFixture` class. *model* can be a model class or its
+    mockup that was :ref:`registry <registered>` or fall back to the
+    default:class:`Mockup` class. *model* can be a model class or its
     string representation (e.g. ``"app.ModelClass"``).
 
-    All positional and keyword arguments are passed to the autofixture
+    All positional and keyword arguments are passed to the mockup
     constructor. It is demonstrated in the example below which will create ten
     superusers::
 
-        import autofixture
-        admins = autofixture.create('auth.User', 10, field_values={'is_superuser': True})
+        import mockups
+        admins = mockups.create('auth.User', 10, field_generators={
+            'is_superuser': generators.StaticGenerator(True)
+        })
 
-    .. note:: See :ref:`AutoFixture` for more information.
+    .. note:: See :ref:`Mockup` for more information.
 
     :func:`create` will return a list of the created objects.
     '''
     from django.db import models
     if isinstance(model, basestring):
         model = models.get_model(*model.split('.', 1))
-    autofixture = get_autofixture(model, *args, **kwargs)
-    return autofixture.create(count)
+    mockup = get_mockup(model, *args, **kwargs)
+    return mockup.create(count)
 
 
 def create_one(model, *args, **kwargs):
@@ -119,8 +121,8 @@ def create_one(model, *args, **kwargs):
 
 def autodiscover():
     """
-    Auto-discover INSTALLED_APPS autofixtures.py modules and fail silently when
-    not present. This forces an import on them to register any autofixtures
+    Auto-discover INSTALLED_APPS mockup.py modules and fail silently when
+    not present. This forces an import on them to register any mockup
     bits they may want.
     """
 
@@ -128,17 +130,17 @@ def autodiscover():
 
     for app in settings.INSTALLED_APPS:
         mod = import_module(app)
-        # Attempt to import the app's autofixtures module.
+        # Attempt to import the app's mockup module.
         try:
             before_import_registry = copy.copy(_registry)
-            import_module('%s.autofixtures' % app)
+            import_module('%s.mockup' % app)
         except Exception:
             # Reset the model registry to the state before the last import
             _registry = before_import_registry
 
             # Decide whether to bubble up this error. If the app just
-            # doesn't have an autofixtures module, we can ignore the error
+            # doesn't have an mockup module, we can ignore the error
             # attempting to import it, otherwise we want it to bubble up.
-            if module_has_submodule(mod, 'autofixtures'):
+            if module_has_submodule(mod, 'mockup'):
                 raise
 

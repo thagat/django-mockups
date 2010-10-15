@@ -1,29 +1,29 @@
-The :class:`AutoFixture` registry
-=================================
+The mockup registry
+===================
 
 .. _registry:
 
-Since :class:`AutoFixture` is designed to fit for almost all models, its very
+Since :class:`Mockup` is designed to fit for almost all models, its very
 generic and doesn't know anything about the actual logic and meanings of
 relations or the purpose of your model fields. This makes it sometimes a bit
-difficult to provide the correct :ref:`field_values <field values>` in all
-places where you want ``autofixture`` to instanciate your models.
+difficult to provide the correct :ref:`field_generators <field values>` in all
+places where you want ``mockups`` to instanciate your models.
 
-So there is a registry to register custom :class:`AutoFixture` subclasses with
+So there is a registry to register custom :class:`Mockup` subclasses with
 specific models. These subclasses are then used by default if you generated
-test data either with the :ref:`loadtestdata <loadtestdata>` management
-command or with one of the :ref:`shortcuts <shortcuts>` in :mod:`autofixture`.
+test data either with the :ref:`mockups <mockups>` management
+command or with one of the :ref:`shortcuts <shortcuts>` in :mod:`mockups`.
 
-.. autofunction:: autofixture.register
+.. autofunction:: mockups.register
 
-.. autofunction:: autofixture.unregister
+.. autofunction:: mockups.unregister
 
-Default :class:`AutoFixture` subclasses
----------------------------------------
+Included Mockup subclasses
+--------------------------
 
-There are some :class:`AutoFixture` subclasses that are shipped by default
-with ``django-autofixture``. These are listed below.
+There are some :class:`Mockup` subclasses that are shipped by default
+with ``django-mockups``. These are listed below.
 
-.. _UserFixture:
-.. autoclass:: autofixture.autofixtures.UserFixture
+.. _UserMockup:
+.. autoclass:: mockups.contrib.auth.UserMockup
    :members: __init__

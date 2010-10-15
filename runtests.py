@@ -12,9 +12,9 @@ from django.test.simple import run_tests
 def runtests(*args):
     failures = run_tests(
         args or [
-            'autofixture',
-            'autofixture_tests',
-            'autofixture_test',
+            'mockups',
+            'mockups_tests',
+            'mockups_test',
             'generator_test',
             'sample_app',
         ],

@@ -31,14 +31,14 @@ long_description = UltraMagicString(u'\n\n'.join((
 
 
 setup(
-    name = 'django-autofixture',
-    version = '0.2.5',
-    url = 'https://github.com/gregmuellegger/django-autofixture',
+    name = 'django-mockups',
+    version = '0.2.6',
+    url = 'https://github.com/sorl/django-mockups',
     license = 'BSD',
-    description = 'Provides tools to auto generate test data.',
+    description = 'Provides tools to auto generate content.',
     long_description = long_description,
-    author = UltraMagicString('Gregor Müllegger'),
-    author_email = 'gregor@muellegger.de',
+    author = UltraMagicString('Mikko Hellsing'),
+    author_email = 'mikko@aino.se',
     classifiers = [
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
@@ -50,9 +50,9 @@ setup(
         'Programming Language :: Python',
     ],
     packages = [
-        'autofixture',
-        'autofixture.management',
-        'autofixture.management.commands'],
+        'mockups',
+        'mockups.management',
+        'mockups.management.commands'],
     install_requires = ['setuptools'],
     test_suite = 'runtests.runtests',
 )

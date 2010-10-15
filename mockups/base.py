@@ -3,8 +3,8 @@ from django.db import models
 from django.db.models import fields
 from django.db.models.fields import related
 from django.utils.datastructures import SortedDict
-from autofixture import constraints, generators, signals
-from autofixture.helpers import get_autofixture
+from mockups import constraints, generators, signals
+from mockups.helpers import get_mockup
 
 
 class CreateInstanceError(Exception):
@@ -77,7 +77,7 @@ class DeclarativeGeneratorsMetaclass(type):
         return uber.__new__(cls, name, bases, attrs)
 
 
-class AutoFixture(object):
+class Mockup(object):
     '''
     .. We don't support the following fields yet:
 
@@ -214,7 +214,7 @@ class AutoFixture(object):
 
     def add_constraint(self, constraint):
         '''
-        Add a *constraint* to the autofixture.
+        Add a *constraint* to the mockup.
         '''
         self.constraints.append(constraint)
 
@@ -240,7 +240,7 @@ class AutoFixture(object):
             # if generate_fk is set, follow_fk is ignored.
             if field.name in self.generate_fk:
                 return generators.InstanceGenerator(
-                    get_autofixture(
+                    get_mockup(
                         field.rel.to,
                         follow_fk=self.follow_fk.get_deep_links(field.name),
                         generate_fk=self.generate_fk.get_deep_links(field.name)),
@@ -264,7 +264,7 @@ class AutoFixture(object):
             if field.name in self.generate_m2m:
                 min_count, max_count = self.generate_m2m[field.name]
                 return generators.MultipleInstanceGenerator(
-                    get_autofixture(
+                    get_mockup(
                         field.rel.to
                     ),
                     limit_choices_to=field.rel.limit_choices_to,
@@ -384,12 +384,12 @@ class AutoFixture(object):
             self_fk = self_fks[0]
             min_count, max_count = self.generate_m2m[field.name]
             intermediary_model = generators.MultipleInstanceGenerator(
-                get_autofixture(
+                get_mockup(
                     through,
                     field_generators={
                         self_fk.name: generators.StaticGenerator(instance),
                         related_fk.name: generators.InstanceGenerator(
-                            get_autofixture(field.rel.to))
+                            get_mockup(field.rel.to))
                     }),
                 min_count=min_count,
                 max_count=max_count,

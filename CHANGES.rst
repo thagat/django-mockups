@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.2.6
+-----
+* Changing syntax to match Django Models & Forms
+
+* Renaming to django-mockups
+
+
 0.2.5
 -----
 
@@ -23,4 +30,4 @@ Changelog
 
 * Fixing bug when a ``CharField`` with ``max_length`` smaller than 15 is used.
 
-* ``AutoFixture.field_values`` accepts callables as values.
+* ``Mockup.field_generators`` accepts callables as values.

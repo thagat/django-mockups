@@ -1,7 +1,7 @@
 import os
 from django.conf import settings
 from django.test import TestCase
-from autofixture import generators
+from mockups import generators
 
 
 class FilePathTests(TestCase):
@@ -21,3 +21,4 @@ class FilePathTests(TestCase):
             path = generate()
             self.assertTrue(path.startswith('textfiles/'))
             self.assertTrue(path.endswith('.txt'))
+
