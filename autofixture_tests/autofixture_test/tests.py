@@ -346,16 +346,16 @@ class TestLinkClass(TestCase):
 
 class TestRegistry(TestCase):
     def setUp(self):
-        self.original_registry = autofixture.REGISTRY
-        autofixture.REGISTRY = {}
+        self.original_registry = autofixture.helpers._registry
+        autofixture.helpers._registry = {}
 
     def tearDown(self):
-        autofixture.REGISTRY = self.original_registry
+        autofixture.helpers._registry = self.original_registry
 
     def test_registration(self):
         autofixture.register(SimpleModel, SimpleAutoFixture)
-        self.assertTrue(SimpleModel in autofixture.REGISTRY)
-        self.assertEqual(autofixture.REGISTRY[SimpleModel], SimpleAutoFixture)
+        self.assertTrue(SimpleModel in autofixture.helpers._registry)
+        self.assertEqual(autofixture.helpers._registry[SimpleModel], SimpleAutoFixture)
 
     def test_create(self):
         autofixture.register(SimpleModel, SimpleAutoFixture)
@@ -376,11 +376,11 @@ class TestRegistry(TestCase):
 
 class TestAutofixtureAPI(TestCase):
     def setUp(self):
-        self.original_registry = autofixture.REGISTRY
-        autofixture.REGISTRY = {}
+        self.original_registry = autofixture.helpers._registry
+        autofixture.helpers._registry = {}
 
     def tearDown(self):
-        autofixture.REGISTRY = self.original_registry
+        autofixture.helpers._registry = self.original_registry
 
     def test_values_class(self):
         autofixture.register(BasicModel, BasicValueFixture)
@@ -403,11 +403,11 @@ class TestManagementCommand(TestCase):
             'verbosity': '0',
             'use': '',
         }
-        self.original_registry = autofixture.REGISTRY
-        autofixture.REGISTRY = {}
+        self.original_registry = autofixture.helpers._registry
+        autofixture.helpers._registry = {}
 
     def tearDown(self):
-        autofixture.REGISTRY = self.original_registry
+        autofixture.helpers._registry = self.original_registry
 
     def test_basic(self):
         models = ()

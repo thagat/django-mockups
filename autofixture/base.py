@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models import fields
 from django.db.models.fields import related
 from django.utils.datastructures import SortedDict
-from autofixture import constraints, generators, signals
+from autofixture import constraints, generators, signals, get_autofixture
 
 
 class CreateInstanceError(Exception):
@@ -249,7 +249,7 @@ class AutoFixture(object):
             # if generate_fk is set, follow_fk is ignored.
             if field.name in self.generate_fk:
                 return generators.InstanceGenerator(
-                    AutoFixture(
+                    get_autofixture(
                         field.rel.to,
                         follow_fk=self.follow_fk.get_deep_links(field.name),
                         generate_fk=self.generate_fk.get_deep_links(field.name)),
@@ -273,7 +273,7 @@ class AutoFixture(object):
             if field.name in self.generate_m2m:
                 min_count, max_count = self.generate_m2m[field.name]
                 return generators.MultipleInstanceGenerator(
-                    AutoFixture(
+                    get_autofixture(
                         field.rel.to
                     ),
                     limit_choices_to=field.rel.limit_choices_to,
@@ -394,12 +394,12 @@ class AutoFixture(object):
             self_fk = self_fks[0]
             min_count, max_count = self.generate_m2m[field.name]
             intermediary_model = generators.MultipleInstanceGenerator(
-                AutoFixture(
+                get_autofixture(
                     through,
                     field_values={
                         self_fk.name: instance,
                         related_fk.name: generators.InstanceGenerator(
-                            AutoFixture(field.rel.to))
+                            get_autofixture(field.rel.to))
                     }),
                 min_count=min_count,
                 max_count=max_count,
