@@ -3,7 +3,8 @@ from django.db import models
 from django.db.models import fields
 from django.db.models.fields import related
 from django.utils.datastructures import SortedDict
-from autofixture import constraints, generators, signals, get_autofixture
+from autofixture import constraints, generators, signals
+from autofixture.helpers import get_autofixture
 
 
 class CreateInstanceError(Exception):

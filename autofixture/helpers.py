@@ -6,8 +6,8 @@ from django.utils.importlib import import_module
 from django.utils.module_loading import module_has_submodule
 
 
-__all__ = ('get_autofixture', 'register', 'unregister', 'create',
-           'create_one', 'autodiscover')
+__all__ = ('register', 'unregister', 'create', 'create_one', 'autodiscover')
+
 
 _registry = {}
 
