@@ -18,12 +18,6 @@ class SimpleAutoFixture(AutoFixture):
     }
 
 
-class BasicValueFixture(AutoFixture):
-    class Values:
-        chars = 'foo'
-        shortchars = lambda: 'a'
-
-
 class TestBasicModel(TestCase):
     def assertEqualOr(self, first, second, fallback):
         if first != second and not fallback:
@@ -378,12 +372,6 @@ class TestAutofixtureAPI(TestCase):
 
     def tearDown(self):
         autofixture.helpers._registry = self.original_registry
-
-    def test_values_class(self):
-        autofixture.register(BasicModel, BasicValueFixture)
-        for obj in autofixture.create(BasicModel, 10):
-            self.assertEqual(obj.chars, 'foo')
-            self.assertEqual(obj.shortchars, 'a')
 
 
 class TestManagementCommand(TestCase):
