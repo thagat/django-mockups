@@ -15,6 +15,9 @@ from mockups_tests.mockups_test.models import (
 class SimpleMockup(Mockup):
     name = generators.StaticGenerator('foo')
 
+class SimpleMockupChild(SimpleMockup):
+    pass
+
 
 class TestBasicModel(TestCase):
     def assertEqualOr(self, first, second, fallback):
@@ -350,6 +353,11 @@ class TestRegistry(TestCase):
             self.assertEqual(obj.name, 'foo')
         obj = mockups.create_one(SimpleModel)
         self.assertEqual(obj.name, 'foo')
+
+    def test_inheritance(self):
+        a = SimpleMockup(SimpleModel).field_generators
+        b = SimpleMockupChild(SimpleModel).field_generators
+        self.assertEqual(a, b)
 
     def test_overwrite_attributes(self):
         mockups.register(SimpleModel, SimpleMockup)
