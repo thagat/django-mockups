@@ -98,7 +98,7 @@ class Mockup(object):
     follow_m2m = {'ALL': (1,5)}
     generate_m2m = False
 
-    tries = 1000
+    creation_tries = 1000
 
     field_to_generator = SortedDict((
         (fields.BooleanField, generators.BooleanGenerator),
@@ -423,15 +423,15 @@ class Mockup(object):
 
         May raise :exc:`CreateInstanceError` if constraints are not satisfied.
         '''
-        tries = self.tries
+        creation_tries = self.creation_tries
         instance = self.model()
         process = instance._meta.fields
-        while process and tries > 0:
+        while process and creation_tries > 0:
             for field in process:
                 self.process_field(instance, field)
             process = self.check_constrains(instance)
-            tries -= 1
-        if tries == 0:
+            creation_tries -= 1
+        if creation_tries == 0:
             raise CreateInstanceError(
                 u'Cannot solve constraints for "%s", tried %d times. '
                 u'Please check value generators or model constraints. '
@@ -439,7 +439,7 @@ class Mockup(object):
                     '%s.%s' % (
                         self.model._meta.app_label,
                         self.model._meta.object_name),
-                    self.tries,
+                    self.creation_tries,
                     ', '.join([field.name for field in process]),
             ))
         if commit:
