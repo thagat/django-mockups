@@ -1,10 +1,22 @@
 # -*- coding: utf-8 -*-
 import mockups
-import string
 from datetime import datetime
 from django.contrib.auth.models import User, UNUSABLE_PASSWORD
-from mockups import Mockup
+from mockups import Mockup, Factory
 from mockups import generators
+
+
+class UserFactory(Factory):
+    username = generators.UUIDGenerator(max_length=30)
+    first_name = generators.LoremWordGenerator(1)
+    last_name = generators.LoremWordGenerator(1)
+    password = generators.StaticGenerator(UNUSABLE_PASSWORD)
+    is_active = generators.StaticGenerator(True)
+    # don't generate admin users
+    is_staff = generators.StaticGenerator(False)
+    is_superuser = generators.StaticGenerator(False)
+    date_joined = generators.DateTimeGenerator(max_date=datetime.now())
+    last_login = generators.DateTimeGenerator(max_date=datetime.now())
 
 
 class UserMockup(Mockup):
@@ -22,19 +34,10 @@ class UserMockup(Mockup):
     * ``date_joined`` and ``last_login`` are always in the past and it is
       assured that ``date_joined`` will be lower than ``last_login``.
     '''
-    username = generators.UUIDGenerator(max_length=30)
-    first_name = generators.LoremWordGenerator(1)
-    last_name = generators.LoremWordGenerator(1)
-    password = generators.StaticGenerator(UNUSABLE_PASSWORD)
-    is_active = generators.StaticGenerator(True)
-    # don't generate admin users
-    is_staff = generators.StaticGenerator(False)
-    is_superuser = generators.StaticGenerator(False)
-    date_joined = generators.DateTimeGenerator(max_date=datetime.now())
-    last_login = generators.DateTimeGenerator(max_date=datetime.now())
 
     # don't follow permissions and groups
     follow_m2m = False
+    factory = UserFactory
 
     def __init__(self, *args, **kwargs):
         '''
@@ -52,8 +55,9 @@ class UserMockup(Mockup):
         self.password = kwargs.pop('password', None)
         super(UserMockup, self).__init__(*args, **kwargs)
         if self.username:
-            self.field_generators['username'] = generators.StaticGenerator(
-                self.username)
+            self.update_fieldname_generator(
+                username = generators.StaticGenerator(self.username)
+                )
 
     def unique_email(self, model, instance):
         if User.objects.filter(email=instance.email):

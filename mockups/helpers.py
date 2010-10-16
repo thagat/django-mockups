@@ -94,9 +94,7 @@ def create(model, count, *args, **kwargs):
     superusers::
 
         import mockups
-        mockups = mockups.create('auth.User', 10, field_generators={
-            'is_superuser': generators.StaticGenerator(True)
-        })
+        mockup = mockups.create('auth.User', 10)
 
     .. note:: See :ref:`Mockup` for more information.
 

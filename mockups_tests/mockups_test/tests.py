@@ -58,7 +58,7 @@ class TestBasicModel(TestCase):
             self.assertTrue(len(obj.ipaddressfield) >= 7)
         self.assertEqual(BasicModel.objects.count(), 100)
 
-    def test_field_generators(self):
+    def test_factory(self):
         int_value = 1
         char_values = (u'a', u'b')
         class GF(Factory):
