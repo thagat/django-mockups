@@ -5,9 +5,7 @@ The mockup registry
 
 Since :class:`Mockup` is designed to fit for almost all models, its very
 generic and doesn't know anything about the actual logic and meanings of
-relations or the purpose of your model fields. This makes it sometimes a bit
-difficult to provide the correct :ref:`field_generators <field values>` in all
-places where you want ``mockups`` to instanciate your models.
+relations or the purpose of your model fields.
 
 So there is a registry to register custom :class:`Mockup` subclasses with
 specific models. These subclasses are then used by default if you generated

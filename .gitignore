@@ -8,6 +8,7 @@ eggs
 example/db.sqlite
 parts
 src/*.egg-info
+*.egg-info
 docs/_build
 *.pyc
 *.swp

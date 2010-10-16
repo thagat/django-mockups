@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-from decimal import Decimal
 import datetime
 import os
 import random
 import re
 import string
 import uuid
+from decimal import Decimal
+from mockups.helpers import get_mockup
 
 
 # backporting os.path.relpath, only availabe in python >= 2.6
@@ -26,8 +27,12 @@ except AttributeError:
 
         rel_list = [os.path.pardir] * (len(start_list)-i) + path_list[i:]
         if not rel_list:
-            return curdir
+            return os.curdir
         return os.path.join(*rel_list)
+
+
+class GeneratorException(Exception):
+    pass
 
 
 class Generator(object):
@@ -53,9 +58,6 @@ class Generator(object):
         value = self.generate()
         return self.coerce(value)
 
-    def __call__(self):
-        return self.get_value()
-
 
 class StaticGenerator(Generator):
     def __init__(self, value, *args, **kwargs):
@@ -78,8 +80,9 @@ class CallableGenerator(Generator):
 
 
 class UUIDGenerator(Generator):
-    def __init__(self, max_length=None):
+    def __init__(self, max_length=None, **kwargs):
         self.max_length = max_length
+        super(UUIDGenerator, self).__init__(**kwargs)
 
     def generate(self):
         value = unicode(uuid.uuid1())
@@ -259,7 +262,6 @@ class DateGenerator(Generator):
         days = random.randint(0, diff.days)
         date = self.min_date + datetime.timedelta(days=days)
         return date
-        return datetime.date(date.year, date.month, date.day)
 
 
 class DecimalGenerator(Generator):
@@ -382,7 +384,7 @@ class FilePathGenerator(Generator):
         if self.recursive:
             for root, dirs, files in os.walk(self.path):
                 for f in files:
-                    if self.match is None or self.match_re.search(f):
+                    if self.match is None or self.match.search(f):
                         f = os.path.join(root, f)
                         filenames.append(f)
         else:
@@ -416,7 +418,7 @@ class MediaFilePathGenerator(FilePathGenerator):
         filename = relpath(filename, settings.MEDIA_ROOT)
         return filename
 
-
+# TODO: try to get this thing out of here
 class InstanceGenerator(Generator):
     '''
     Naive support for ``limit_choices_to``. It assignes specified value to
@@ -433,8 +435,10 @@ class InstanceGenerator(Generator):
             bits = lookup.split('__')
             if len(bits) == 1 or \
                 len(bits) == 2 and bits[1] in ('exact', 'iexact'):
-                self.mockup.add_field_generator(bits[0],
-                        StaticGenerator(value))
+                params = {
+                    bits[0]: StaticGenerator(value)
+                }
+                self.mockup.update_fieldname_generator(**params)
         super(InstanceGenerator, self).__init__(*args, **kwargs)
 
     def generate(self):
@@ -485,3 +489,119 @@ class InstanceSelector(Generator):
             min_count = self.min_count or 0
             count = random.randint(min_count, self.max_count)
             return self.queryset.order_by('?')[:count]
+
+#
+# Field coupled generators
+# 
+# TODO make sure in a better way that generators use empty_p = 0
+class FieldGenerator(Generator):
+    def __init__(self, field, **kwargs):
+        empty_p = kwargs.pop('empty_p', None)
+        coerce = kwargs.pop('coerce', None)
+        self.field = field
+        self.kwargs = kwargs
+        super(FieldGenerator, self).__init__(empty_p=empty_p, coerce=coerce)
+
+    def get_generator(self, field, **kwargs):
+        raise NotImplementedError
+
+    def generate(self):
+        if not hasattr(self, '_generator'):
+            self._generator = self.get_generator(self.field, **self.kwargs)
+        return self._generator.generate()
+
+
+class ForeignKeyFieldGenerator(FieldGenerator):
+    def get_generator(self, field, generate_fk=None, follow_fk=None, **kwargs):
+        # if generate_fk is set, follow_fk is ignored.
+        if field.name in generate_fk:
+            mockup = get_mockup(
+                field.rel.to,
+                follow_fk=follow_fk.get_deep_links(field.name),
+                generate_fk=generate_fk.get_deep_links(field.name)
+                )
+            return InstanceGenerator(
+                mockup,
+                limit_choices_to=field.rel.limit_choices_to
+                )
+        elif field.name in follow_fk:
+            return InstanceSelector(
+                field.rel.to,
+                limit_choices_to=field.rel.limit_choices_to
+                )
+        elif field.blank or field.null:
+            return StaticGenerator(None)
+        raise GeneratorException(
+            u'Cannot resolve ForeignKey "%s" to "%s". Provide either '
+            u'"follow_fk" or "generate_fk" parameters.' % (
+                field.name,
+                '%s.%s' % (
+                    field.rel.to._meta.app_label,
+                    field.rel.to._meta.object_name,
+                )
+        ))
+
+
+class OneToOneFieldGenerator(ForeignKeyFieldGenerator):
+    pass
+
+
+class ManyToManyFieldGenerator(FieldGenerator):
+    def get_generator(self, field, generate_m2m=None, follow_m2m=None, **kwargs):
+        if field.name in generate_m2m:
+            min_count, max_count = generate_m2m[field.name]
+            return MultipleInstanceGenerator(
+                get_mockup(field.rel.to),
+                limit_choices_to=field.rel.limit_choices_to,
+                min_count=min_count,
+                max_count=max_count,
+                )
+        elif field.name in follow_m2m:
+            min_count, max_count = follow_m2m[field.name]
+            return InstanceSelector(
+                field.rel.to,
+                limit_choices_to=field.rel.limit_choices_to,
+                min_count=min_count,
+                max_count=max_count,
+                )
+        elif field.blank or field.null:
+            return StaticGenerator([])
+        raise GeneratorException(
+            u'Cannot assign instances of "%s" to ManyToManyField "%s". '
+            u'Provide either "follow_m2m" or "generate_m2m" argument.' % (
+                '%s.%s' % (
+                    field.rel.to._meta.app_label,
+                    field.rel.to._meta.object_name,
+                ),
+                field.name,
+        ))
+
+
+class FilePathFieldGenerator(FieldGenerator):
+    def get_generator(self, field, **kwargs):
+        return FilePathGenerator(
+            path=field.path, match=field.match, recursive=field.recursive,
+            max_length=field.max_length)
+
+
+class CharFieldGenerator(FieldGenerator):
+    def get_generator(self, field, **kwargs):
+        max_length = field.max_length
+        if max_length < 15:
+            return StringGenerator(max_length=max_length)
+        return LoremSentenceGenerator(common=False, max_length=max_length)
+
+
+class DecimalFieldGenerator(FieldGenerator):
+    def get_generator(self, field, **kwargs):
+        return DecimalGenerator(
+            decimal_places=field.decimal_places,
+            max_digits=field.max_digits)
+
+
+class BigIntegerFieldGenerator(FieldGenerator):
+    def get_generator(self, field, **kwargs):
+        return IntegerGenerator(min_value=-field.MAX_BIGINT - 1,
+                max_value=field.MAX_BIGINT)
+
+

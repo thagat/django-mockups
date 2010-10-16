@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.4.0
+-----
+* Major rewrite to use Factory
+
 0.2.6
 -----
 * Changing syntax to match Django Models & Forms

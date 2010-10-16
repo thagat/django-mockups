@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 from django.db import models
-from django.db.models import fields
 from django.db.models.fields import related
-from django.utils.datastructures import SortedDict
-from mockups import constraints, generators, signals
+from mockups import constraints, generators, signals, factory
 from mockups.helpers import get_mockup
 
 
-class CreateInstanceError(Exception):
+class IGNORE_FIELD(object):
     pass
 
+class CreateInstanceError(Exception):
+    pass
 
 class Link(object):
     '''
@@ -59,24 +59,6 @@ class Link(object):
         return Link(fields, default=self.default)
 
 
-def get_declared_generators(bases, attrs):
-    field_generators = {}
-    for base in bases[::-1]:
-        if hasattr(base, 'field_generators'):
-            field_generators.update(base.field_generators)
-    for k, v in attrs.items():
-        if isinstance(v, generators.Generator):
-            field_generators[k] = attrs.pop(k)
-    return field_generators
-
-
-class DeclarativeGeneratorsMetaclass(type):
-    def __new__(cls, name, bases, attrs):
-        attrs['field_generators'] = get_declared_generators(bases, attrs)
-        uber = super(DeclarativeGeneratorsMetaclass, cls)
-        return uber.__new__(cls, name, bases, attrs)
-
-
 class Mockup(object):
     '''
     .. We don't support the following fields yet:
@@ -88,49 +70,20 @@ class Mockup(object):
         Patches are welcome.
     '''
 
-    __metaclass__ = DeclarativeGeneratorsMetaclass
-
-    class IGNORE_FIELD(object):
-        pass
-
     follow_fk = True
     generate_fk = False
     follow_m2m = {'ALL': (1,5)}
     generate_m2m = False
-
     creation_tries = 1000
+    default_constraints = [ constraints.unique_constraint,
+            constraints.unique_together_constraint]
+    factory = factory.Factory
 
-    field_to_generator = SortedDict((
-        (fields.BooleanField, generators.BooleanGenerator),
-        (fields.NullBooleanField, generators.NullBooleanGenerator),
-        (fields.DateTimeField, generators.DateTimeGenerator),
-        (fields.DateField, generators.DateGenerator),
-        (fields.PositiveSmallIntegerField, generators.PositiveSmallIntegerGenerator),
-        (fields.PositiveIntegerField, generators.PositiveIntegerGenerator),
-        (fields.SmallIntegerField, generators.SmallIntegerGenerator),
-        (fields.IntegerField, generators.IntegerGenerator),
-        (fields.IPAddressField, generators.IPAddressGenerator),
-        (fields.TextField, generators.LoremGenerator),
-        (fields.TimeField, generators.TimeGenerator),
-    ))
-
-    field_generators = {}
-
-    default_constraints = [
-        constraints.unique_constraint,
-        constraints.unique_together_constraint]
-
-    def __init__(self, model, field_generators=None, constraints=None,
-            follow_fk=None, generate_fk=None, follow_m2m=None,
-            generate_m2m=None):
+    def __init__(self, model, constraints=None, follow_fk=None,
+            generate_fk=None, follow_m2m=None, generate_m2m=None):
         '''
         Parameters:
             ``model``: A model class which is used to create the test data.
-
-            ``field_generators``: A dictionary with field names of ``model`` as
-            keys. Values may be static values that are assigned to the field,
-            a ``Generator`` instance that generates a value on the fly or a
-            callable which takes no arguments and returns the wanted value.
 
             ``constraints``: A list of callables. The constraints are used to
             verify if the created model instance may be used. The callable
@@ -158,8 +111,10 @@ class Mockup(object):
             will be ignored if this parameter is set.
         '''
         self.model = model
-        self.field_generators.update(field_generators or {})
         self.constraints = constraints or []
+
+        # create a factory instance
+        self._factory = self.factory()
 
         if follow_fk is not None:
             self.follow_fk = follow_fk
@@ -194,7 +149,7 @@ class Mockup(object):
         for constraint in self.default_constraints:
             self.add_constraint(constraint)
 
-        self._field_generators = {}
+        self._fieldname_to_generator = {}
 
         self.prepare_class()
 
@@ -205,12 +160,11 @@ class Mockup(object):
         '''
         pass
 
-    def add_field_generator(self, name, value):
+    def update_fieldname_generator(self, **kwargs):
         '''
-        Pass a static *value* that should be assigned to the field called
-        *name*. *value* may be a :ref:`Generator <Generator>` instance.
+        Updates the factory instance with new generators
         '''
-        self.field_generators[name] = value
+        self._factory.fieldname_to_generator.update(kwargs)
 
     def add_constraint(self, constraint):
         '''
@@ -226,123 +180,30 @@ class Mockup(object):
         found).
         '''
 
-        if field.name in self.field_generators:
-            return self.field_generators[field.name]
-
-        if isinstance(field, fields.AutoField):
-            return None
-        if field.default is not fields.NOT_PROVIDED:
-            return None
-
-        if field.choices:
-            return generators.ChoicesGenerator(choices=field.choices)
-        if isinstance(field, related.ForeignKey):
-            # if generate_fk is set, follow_fk is ignored.
-            if field.name in self.generate_fk:
-                return generators.InstanceGenerator(
-                    get_mockup(
-                        field.rel.to,
-                        follow_fk=self.follow_fk.get_deep_links(field.name),
-                        generate_fk=self.generate_fk.get_deep_links(field.name)),
-                    limit_choices_to=field.rel.limit_choices_to)
-            if field.name in self.follow_fk:
-                return generators.InstanceSelector(
-                    field.rel.to,
-                    limit_choices_to=field.rel.limit_choices_to)
-            if field.blank or field.null:
-                return generators.StaticGenerator(None)
-            raise CreateInstanceError(
-                u'Cannot resolve ForeignKey "%s" to "%s". Provide either '
-                u'"follow_fk" or "generate_fk" parameters.' % (
-                    field.name,
-                    '%s.%s' % (
-                        field.rel.to._meta.app_label,
-                        field.rel.to._meta.object_name,
-                    )
-            ))
-        if isinstance(field, related.ManyToManyField):
-            if field.name in self.generate_m2m:
-                min_count, max_count = self.generate_m2m[field.name]
-                return generators.MultipleInstanceGenerator(
-                    get_mockup(
-                        field.rel.to
-                    ),
-                    limit_choices_to=field.rel.limit_choices_to,
-                    min_count=min_count,
-                    max_count=max_count,
-                    )
-            if field.name in self.follow_m2m:
-                min_count, max_count = self.follow_m2m[field.name]
-                return generators.InstanceSelector(
-                    field.rel.to,
-                    limit_choices_to=field.rel.limit_choices_to,
-                    min_count=min_count,
-                    max_count=max_count,
-                    )
-            if field.blank or field.null:
-                return generators.StaticGenerator([])
-            raise CreateInstanceError(
-                u'Cannot assign instances of "%s" to ManyToManyField "%s". '
-                u'Provide either "follow_m2m" or "generate_m2m" argument.' % (
-                    '%s.%s' % (
-                        field.rel.to._meta.app_label,
-                        field.rel.to._meta.object_name,
-                    ),
-                    field.name,
-            ))
-        if isinstance(field, fields.FilePathField):
-            return generators.FilePathGenerator(
-                path=field.path, match=field.match, recursive=field.recursive,
-                max_length=field.max_length)
-        if isinstance(field, fields.CharField):
-            if isinstance(field, fields.SlugField):
-                generator = generators.SlugGenerator
-            elif isinstance(field, fields.EmailField):
-                return generators.EmailGenerator(
-                    max_length=min(field.max_length, 30))
-            elif isinstance(field, fields.URLField):
-                return generators.URLGenerator(
-                    max_length=min(field.max_length, 25))
-            elif field.max_length > 15:
-                return generators.LoremSentenceGenerator(
-                    common=False,
-                    max_length=field.max_length)
-            else:
-                generator = generators.StringGenerator
-            return generator(max_length=field.max_length)
-        if isinstance(field, fields.DecimalField):
-            return generators.DecimalGenerator(
-                decimal_places=field.decimal_places,
-                max_digits=field.max_digits)
-        if hasattr(fields, 'BigIntegerField'):
-            if isinstance(field, fields.BigIntegerField):
-                return generators.IntegerGenerator(
-                    min_value=-field.MAX_BIGINT - 1,
-                    max_value=field.MAX_BIGINT,
-                    )
-        for field_class, generator in self.field_to_generator.items():
-            if isinstance(field, field_class):
-                return generator()
-        return None
+        params = {
+            'follow_fk': self.follow_fk,
+            'generate_fk': self.generate_fk,
+            'follow_m2m': self.follow_m2m,
+            'generate_m2m': self.generate_m2m,
+        }
+        return self._factory.get_generator(field, **params)
 
     def get_value(self, field):
         '''
         Return a random value that can be assigned to the passed *field*
         instance.
         '''
-        if field not in self._field_generators:
-            self._field_generators[field] = self.get_generator(field)
-        generator = self._field_generators[field]
+        if field not in self._fieldname_to_generator:
+            self._fieldname_to_generator[field] = self.get_generator(field)
+        generator = self._fieldname_to_generator[field]
         if generator is None:
-            return self.IGNORE_FIELD
-        value = generator()
-        return value
+            return IGNORE_FIELD
+        return generator.get_value()
 
     def process_field(self, instance, field):
         value = self.get_value(field)
-        if value is self.IGNORE_FIELD:
-            return
-        setattr(instance, field.name, value)
+        if value is not IGNORE_FIELD:
+            setattr(instance, field.name, value)
 
     def process_m2m(self, instance, field):
         # check django's version number to determine how intermediary models
@@ -350,7 +211,7 @@ class Mockup(object):
         from django import VERSION
         auto_created_through_model = False
         through = field.rel.through
-        if VERSION < (1,2):
+        if VERSION < (1, 2):
             if through:
                 if isinstance(through, basestring):
                     bits = through.split('.')
@@ -383,17 +244,20 @@ class Mockup(object):
             related_fk = related_fks[0]
             self_fk = self_fks[0]
             min_count, max_count = self.generate_m2m[field.name]
-            intermediary_model = generators.MultipleInstanceGenerator(
-                get_mockup(
-                    through,
-                    field_generators={
-                        self_fk.name: generators.StaticGenerator(instance),
-                        related_fk.name: generators.InstanceGenerator(
-                            get_mockup(field.rel.to))
-                    }),
-                min_count=min_count,
-                max_count=max_count,
-                ).generate()
+
+            related_mockup = get_mockup(field.rel.to)
+            related_generator = generators.InstanceGenerator(related_mockup)
+            through_mockup = get_mockup(through)
+            # update the through mockup factory
+            params = {
+                self_fk.name: generators.StaticGenerator(instance),
+                related_fk.name: generators.InstanceGenerator(related_mockup),
+            }
+            through_mockup.update_fieldname_generator(**params)
+
+            generator = generators.MultipleInstanceGenerator(through_mockup,
+                    min_count=min_count, max_count=max_count)
+            generator.generate()
 
     def check_constrains(self, instance):
         '''

@@ -1,6 +1,6 @@
-==================
+=============
 django-mockups
-==================
+==============
 
 This app aims to provide a simple way of loading masses of randomly generated
 test data into your development database. You can use a management command to
@@ -104,12 +104,15 @@ Setting custom values for fields
 --------------------------------
 
 However its often necessary to be sure that a specific field must have a
-specific value. This is easily achieved with the ``field_generators`` attribute of
-``Mockup``::
+specific value. This is easily achieved with the use of ``Factory``::
 
-    mockup = Mockup(Entry, field_generators={
-        'pub_date': datetime(2010, 2, 1)
-    })
+    class PonyFactory(Factory):
+        pub_date = generators.StaticGenerator(datetime(2010, 2, 1))
+
+    class PonyMockup(Mockup):
+        factory = PonyFactory 
+
+    mockup = PonyMockup(Entry)
 
 
 More

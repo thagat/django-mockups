@@ -4,6 +4,7 @@ from decimal import Decimal
 from datetime import date, datetime
 from django.test import TestCase
 from mockups import generators
+from mockups import Factory
 from mockups.base import Mockup, CreateInstanceError,  Link
 from mockups_tests.mockups_test.models import y2k
 from mockups_tests.mockups_test.models import (
@@ -12,11 +13,11 @@ from mockups_tests.mockups_test.models import (
     RelatedModel, O2OModel, M2MModel, ThroughModel, M2MModelThrough)
 
 
-class SimpleMockup(Mockup):
+class SimpleFactory(Factory):
     name = generators.StaticGenerator('foo')
 
-class SimpleMockupChild(SimpleMockup):
-    pass
+class SimpleMockup(Mockup):
+    factory = SimpleFactory
 
 
 class TestBasicModel(TestCase):
@@ -60,13 +61,14 @@ class TestBasicModel(TestCase):
     def test_field_generators(self):
         int_value = 1
         char_values = (u'a', u'b')
-        filler = Mockup(
-            BasicModel,
-            field_generators={
-                'intfield': generators.StaticGenerator(1),
-                'chars': generators.ChoicesGenerator(values=char_values),
-                'shortchars': generators.CallableGenerator(lambda: u'ab'),
-            })
+        class GF(Factory):
+            intfield = generators.StaticGenerator(1)
+            chars = generators.ChoicesGenerator(values=char_values)
+            shortchars = generators.CallableGenerator(lambda: u'ab')
+        class M(Mockup):
+            factory = GF
+
+        filler = M(BasicModel)
         for obj in filler.create(100):
             self.assertEqual(obj.intfield, int_value)
             self.assertTrue(obj.chars in char_values)
@@ -355,17 +357,23 @@ class TestRegistry(TestCase):
         self.assertEqual(obj.name, 'foo')
 
     def test_inheritance(self):
-        a = SimpleMockup(SimpleModel).field_generators
-        b = SimpleMockupChild(SimpleModel).field_generators
-        self.assertEqual(a, b)
+        class A(Factory):
+            x = generators.StaticGenerator
+        class B(A):
+            pass
+        a = A()
+        b = B()
+        self.assertEqual(a.fieldname_to_generator, b.fieldname_to_generator)
 
     def test_overwrite_attributes(self):
-        mockups.register(SimpleModel, SimpleMockup)
-        for obj in mockups.create(
-                SimpleModel, 10, field_generators={'name': generators.StaticGenerator('bar')}):
+        class GF(Factory):
+            name = generators.StaticGenerator('bar')
+        class M(SimpleMockup):
+            factory = GF
+        mockups.register(SimpleModel, M)
+        for obj in mockups.create(SimpleModel, 10):
             self.assertEqual(obj.name, 'bar')
-        obj = mockups.create_one(
-            SimpleModel, field_generators={'name': generators.StaticGenerator('bar')})
+        obj = mockups.create_one(SimpleModel)
         self.assertEqual(obj.name, 'bar')
 
 
@@ -484,9 +492,3 @@ class TestManagementCommand(TestCase):
         for obj in SimpleModel.objects.all():
             self.assertEqual(obj.name, 'foo')
 
-    def test_use_option(self):
-        self.options['use'] = 'mockups_tests.mockups_test.tests.SimpleMockup'
-        models = ('mockups_test.SimpleModel:10',)
-        self.command.handle(*models, **self.options)
-        for obj in SimpleModel.objects.all():
-            self.assertEqual(obj.name, 'foo')

@@ -6,9 +6,9 @@ from mockups import generators
 
 class FilePathTests(TestCase):
     def test_media_path_generator(self):
-        generate = generators.MediaFilePathGenerator(recursive=True)
+        generator = generators.MediaFilePathGenerator(recursive=True)
         for i in range(10):
-            path = generate()
+            path = generator.get_value()
             self.assertTrue(len(path) > 0)
             self.assertFalse(path.startswith('/'))
             media_path = os.path.join(settings.MEDIA_ROOT, path)
@@ -16,9 +16,9 @@ class FilePathTests(TestCase):
             self.assertTrue(os.path.isfile(media_path))
 
     def test_media_path_generator_in_subdirectory(self):
-        generate = generators.MediaFilePathGenerator(path='textfiles')
+        generator = generators.MediaFilePathGenerator(path='textfiles')
         for i in range(10):
-            path = generate()
+            path = generator.get_value()
             self.assertTrue(path.startswith('textfiles/'))
             self.assertTrue(path.endswith('.txt'))
 
