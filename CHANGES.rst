@@ -38,4 +38,4 @@ Changelog
 
 * Fixing bug when a ``CharField`` with ``max_length`` smaller than 15 is used.
 
-* ``ModelMockup.field_generators`` accepts callables as values.
+* ``Mockup.field_generators`` accepts callables as values.
