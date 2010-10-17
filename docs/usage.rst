@@ -21,22 +21,22 @@ test data as fast as possible.
 
 .. autofunction:: mockups.create_one
 
-.. _Mockup:
+.. _ModelMockup:
 
-Using the Mockup class
+Using the ModelMockup class
 ----------------------
 
-.. autoclass:: mockups.base.Mockup
+.. autoclass:: mockups.base.ModelMockup
    :members: __init__, add_field_generator, add_constraint, check_constrains,
        create, create_one
 
-Subclassing :class:`Mockup`
+Subclassing :class:`ModelMockup`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The following methods may be overwritten by subclasses:
 
-.. automethod:: mockups.base.Mockup.prepare_class
+.. automethod:: mockups.base.ModelMockup.prepare_class
 
-.. automethod:: mockups.base.Mockup.post_process_instance
+.. automethod:: mockups.base.ModelMockup.post_process_instance
 
-.. automethod:: mockups.base.Mockup.get_generator
+.. automethod:: mockups.base.ModelMockup.get_generator

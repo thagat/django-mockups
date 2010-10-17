@@ -59,7 +59,7 @@ class Link(object):
         return Link(fields, default=self.default)
 
 
-class Mockup(object):
+class ModelMockup(object):
     '''
     .. We don't support the following fields yet:
 
@@ -80,7 +80,8 @@ class Mockup(object):
     factory = factory.Factory
 
     def __init__(self, model, constraints=None, follow_fk=None,
-            generate_fk=None, follow_m2m=None, generate_m2m=None):
+            generate_fk=None, follow_m2m=None, generate_m2m=None,
+            factory=None):
         '''
         Parameters:
             ``model``: A model class which is used to create the test data.
@@ -114,6 +115,8 @@ class Mockup(object):
         self.constraints = constraints or []
 
         # create a factory instance
+        if factory is not None:
+            self.factory = factory
         self._factory = self.factory()
 
         if follow_fk is not None:
@@ -150,7 +153,6 @@ class Mockup(object):
             self.add_constraint(constraint)
 
         self._fieldname_to_generator = {}
-
         self.prepare_class()
 
     def prepare_class(self):

@@ -73,7 +73,7 @@ class Command(BaseCommand):
         make_option('-u', '--use', action='store', dest='use',
             default='', help=
                 u'Specify a mockup subclass that is used to create the '
-                u'test data. E.g. myapp.mockup.MyMockup'),
+                u'test data. E.g. myapp.mockup.MyModelMockup'),
     )
 
     def format_output(self, obj):

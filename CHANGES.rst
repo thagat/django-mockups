@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.4.1
+-----
+* Just a rename of Mockup to ModelMockup
+
 0.4.0
 -----
 * Major rewrite to use Factory
@@ -34,4 +38,4 @@ Changelog
 
 * Fixing bug when a ``CharField`` with ``max_length`` smaller than 15 is used.
 
-* ``Mockup.field_generators`` accepts callables as values.
+* ``ModelMockup.field_generators`` accepts callables as values.
