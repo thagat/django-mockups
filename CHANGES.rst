@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.4.2
+-----
+* Make ModelMockup take a factory instance as keyword argument for more
+  flexibility
+
 0.4.1
 -----
 * Just a rename of Mockup to ModelMockup

@@ -493,7 +493,6 @@ class InstanceSelector(Generator):
 #
 # Field coupled generators
 # 
-# TODO make sure in a better way that generators use empty_p = 0
 class FieldGenerator(Generator):
     def __init__(self, field, **kwargs):
         empty_p = kwargs.pop('empty_p', None)

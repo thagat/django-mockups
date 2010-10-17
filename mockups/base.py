@@ -110,14 +110,19 @@ class ModelMockup(object):
             ``ManyToManyField``. Default is ``False`` which disables the
             generation of new related instances. The value of ``follow_m2m``
             will be ignored if this parameter is set.
+
+            ``factory``: A Factory *instance*, overriding the one defined in the
+            ModelMockup class.
         '''
         self.model = model
         self.constraints = constraints or []
 
-        # create a factory instance
+        # instantiate the factory class
         if factory is not None:
-            self.factory = factory
-        self._factory = self.factory()
+            self.factory = factory.__class__
+            self._factory = factory
+        else:
+            self._factory = self.factory()
 
         if follow_fk is not None:
             self.follow_fk = follow_fk
