@@ -82,7 +82,7 @@ class Factory(object):
         if field.name in self.fieldname_to_generator:
             obj = self.fieldname_to_generator[field.name]
         elif field.choices:
-            return generators.ChoicesGenerator(choices=field.choices)
+            return generators.ChoiceFieldGenerator(field)
         elif field.default is not models.NOT_PROVIDED:
             return None # bail out
         elif field.__class__ in self.fieldclass_to_generator:

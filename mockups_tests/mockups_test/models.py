@@ -39,6 +39,7 @@ class BasicModel(models.Model):
     nullchars = models.CharField(max_length=100, blank=True, null=True)
     slugfield = models.SlugField()
     textfield = models.TextField()
+    nullbool = models.NullBooleanField()
 
     defaultint = models.IntegerField(default=1)
     intfield = models.IntegerField()

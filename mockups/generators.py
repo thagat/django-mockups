@@ -206,31 +206,24 @@ class PositiveSmallIntegerGenerator(SmallIntegerGenerator):
     min_value = 0
 
 
-class ChoicesGenerator(Generator):
-    def __init__(self, choices=(), values=(), *args, **kwargs):
-        assert len(choices) or len(values)
-        self.choices = list(choices)
-        if not values:
-            self.values = [k for k, v in self.choices]
-        else:
-            self.values = list(values)
-        super(ChoicesGenerator, self).__init__(*args, **kwargs)
+class ChoiceGenerator(Generator):
+    choices = []
+
+    def __init__(self, choices=None, *args, **kwargs):
+        if choices is not None:
+            self.choices = choices
+        super(ChoiceGenerator, self).__init__(*args, **kwargs)
 
     def generate(self):
-        return random.choice(self.values)
+        return random.choice(self.choices)
 
 
-class BooleanGenerator(ChoicesGenerator):
-    def __init__(self, none=False, *args, **kwargs):
-        values = (True, False)
-        if none:
-            values = values + (None,)
-        super(BooleanGenerator, self).__init__(values=values, *args, **kwargs)
+class BooleanGenerator(ChoiceGenerator):
+    choices = (True, False)
 
 
 class NullBooleanGenerator(BooleanGenerator):
-    def __init__(self, none=True, *args, **kwargs):
-        super(NullBooleanGenerator, self).__init__(none=none, *args, **kwargs)
+    empty_p = 1 / 3.0
 
 
 class DateTimeGenerator(Generator):
@@ -514,6 +507,11 @@ class FieldGenerator(Generator):
         if not hasattr(self, '_generator'):
             self._generator = self.get_generator(self.field, **self.kwargs)
         return self._generator.generate()
+
+
+class ChoiceFieldGenerator(FieldGenerator):
+    def get_generator(self, field, *args, **kwargs):
+        return ChoiceGenerator([k for k, v in field.choices])
 
 
 class ForeignKeyFieldGenerator(FieldGenerator):

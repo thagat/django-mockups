@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.4.4
+-----
+* Rename and remake ChoicesGenerator -> ChoiceGenerator + ChoiceFieldGenerator
+
 0.4.3
 -----
 * Make generators take empty_value keyword argument

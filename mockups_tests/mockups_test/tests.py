@@ -63,7 +63,8 @@ class TestBasicModel(TestCase):
         char_values = (u'a', u'b')
         class GF(Factory):
             intfield = generators.StaticGenerator(1)
-            chars = generators.ChoicesGenerator(values=char_values)
+            chars = generators.ChoiceGenerator(char_values)
+            nullbool = generators.NullBooleanGenerator
             shortchars = generators.CallableGenerator(lambda: u'ab')
         class M(ModelMockup):
             factory = GF
@@ -72,6 +73,7 @@ class TestBasicModel(TestCase):
         for obj in filler.create(100):
             self.assertEqual(obj.intfield, int_value)
             self.assertTrue(obj.chars in char_values)
+            self.assertTrue(obj.nullbool in (False, True, None))
             self.assertEqual(obj.shortchars, u'ab')
 
 
