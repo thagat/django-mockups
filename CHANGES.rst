@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.4.3
+-----
+* Make generators take empty_value keyword argument
+
 0.4.2
 -----
 * Make ModelMockup take a factory instance as keyword argument for more

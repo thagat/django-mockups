@@ -35,15 +35,21 @@ class GeneratorException(Exception):
     pass
 
 
+class IGNORE_EMPTY(object):
+    pass
+
+
 class Generator(object):
     coerce_type = staticmethod(lambda x: x)
     empty_value = None
     empty_p = 0
 
-    def __init__(self, empty_p=None, coerce=None):
+    def __init__(self, empty_p=None, empty_value=IGNORE_EMPTY, coerce=None):
         if empty_p is not None:
             self.empty_p = empty_p
-        if coerce:
+        if empty_value is not IGNORE_EMPTY:
+            self.empty_value = empty_value
+        if coerce is not None:
             self.coerce_type = coerce
 
     def coerce(self, value):
