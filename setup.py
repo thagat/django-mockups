@@ -32,7 +32,7 @@ long_description = UltraMagicString(u'\n\n'.join((
 
 setup(
     name = 'django-mockups',
-    version = '0.4.3',
+    version = '0.4.4',
     url = 'https://github.com/sorl/django-mockups',
     license = 'BSD',
     description = 'Provides tools to auto generate content.',
