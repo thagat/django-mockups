@@ -359,13 +359,12 @@ class IPAddressGenerator(Generator):
 
 
 class TimeGenerator(Generator):
-    coerce_type = unicode
-
     def generate(self):
-        return u'%02d:%02d:%02d' % (
+        return datetime.time(
             random.randint(0,23),
             random.randint(0,59),
             random.randint(0,59),
+            random.randint(0, 999999),
         )
 
 
