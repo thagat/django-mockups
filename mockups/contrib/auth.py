@@ -2,7 +2,7 @@
 import mockups
 from datetime import datetime
 from django.contrib.auth.models import User, UNUSABLE_PASSWORD
-from mockups import ModelMockup, Factory
+from mockups import Mockup, Factory
 from mockups import generators
 
 
@@ -19,9 +19,9 @@ class UserFactory(Factory):
     last_login = generators.DateTimeGenerator(max_date=datetime.now())
 
 
-class UserModelMockup(ModelMockup):
+class UserMockup(Mockup):
     '''
-    :class:`UserModelMockup` is automatically used by default to create new
+    :class:`UserMockup` is automatically used by default to create new
     ``User`` instances. It uses the following values to assure that you can
     use the generated instances without any modification:
 
@@ -53,7 +53,7 @@ class UserModelMockup(ModelMockup):
         '''
         self.username = kwargs.pop('username', None)
         self.password = kwargs.pop('password', None)
-        super(UserModelMockup, self).__init__(*args, **kwargs)
+        super(UserMockup, self).__init__(*args, **kwargs)
         if self.username:
             self.update_fieldname_generator(
                 username = generators.StaticGenerator(self.username)
@@ -75,4 +75,4 @@ class UserModelMockup(ModelMockup):
         return instance
 
 
-mockups.register(User, UserModelMockup, fail_silently=True)
+mockups.register(User, UserMockup, fail_silently=True)

@@ -61,7 +61,7 @@ class Link(object):
         return Link(fields, default=self.default)
 
 
-class ModelMockup(object):
+class Mockup(object):
     '''
     .. We don't support the following fields yet:
 
@@ -114,7 +114,7 @@ class ModelMockup(object):
             will be ignored if this parameter is set.
 
             ``factory``: A Factory *instance*, overriding the one defined in the
-            ModelMockup class.
+            Mockup class.
         '''
         self.model = model
         self.constraints = constraints or []

@@ -64,14 +64,14 @@ dumped from your production database. But while in development when database
 schemes are changing frequently, its hard to maintain all fixtures and to know
 exactly which objects are contained in the dumps etc...
 
-ModelMockups to the rescue! It lets you automatically generate models and all
+Mockups to the rescue! It lets you automatically generate models and all
 of their dependecies on the fly. Have a look at the following examples.
 
-Lets start with the very basics. We create a ``ModelMockup`` instance for the
+Lets start with the very basics. We create a ``Mockup`` instance for the
 ``Entry`` model and tell it to create ten model instances::
 
-    from mockups import ModelMockup
-    mockup = ModelMockup(Entry)
+    from mockups import Mockup
+    mockup = Mockup(Entry)
     entries = mockup.create(10)
 
 Now you can play around and test your blog entries. By default dependecies of
@@ -80,18 +80,18 @@ already existing object of the related model. What if you don't have one yet?
 You can provide the ``generate_fk`` attribute which allows the mockup
 instance to follow foreignkeys by generating new related models::
 
-    mockup = ModelMockup(Entry, generate_fk=True)
+    mockup = Mockup(Entry, generate_fk=True)
 
 This generates new instance for *all* foreignkey fields of ``Entry``. Its
 possible to limit this behaviour to single fields::
 
-    mockup = ModelMockup(Entry, generate_fk=['author'])
+    mockup = Mockup(Entry, generate_fk=['author'])
 
 This will only create new authors automatically and doesn't touch other
 tables. The same is possible with many to many fields. But you need
 additionally specify how many objects should be created for the m2m relation::
 
-    mockup = ModelMockup(Entry, generate_m2m={'categories': (1,3)})
+    mockup = Mockup(Entry, generate_m2m={'categories': (1,3)})
 
 All created entry models get one to three new categories assigned.
 
@@ -103,10 +103,10 @@ specific value. This is easily achieved with the use of ``Factory``::
     class PonyFactory(Factory):
         pub_date = generators.StaticGenerator(datetime(2010, 2, 1))
 
-    class PonyModelMockup(ModelMockup):
+    class PonyMockup(Mockup):
         factory = PonyFactory 
 
-    mockup = PonyModelMockup(Entry)
+    mockup = PonyMockup(Entry)
 
 
 More
@@ -114,7 +114,7 @@ More
 There is so much more to explore which might be useful for you and your
 projects:
 
-* There are ways to register custom ``ModelMockup`` subclasses with models
+* There are ways to register custom ``Mockup`` subclasses with models
   that are automatically used when calling ``mockups`` on the model.
 * More control for related models, even with relations of related models...
   (e.g. by using ``generate_fk=['author', 'author__user']``)

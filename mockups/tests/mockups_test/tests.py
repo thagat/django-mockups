@@ -5,7 +5,7 @@ from datetime import date, datetime
 from django.test import TestCase
 from mockups import generators
 from mockups import Factory
-from mockups.base import ModelMockup, CreateInstanceError,  Link
+from mockups.base import Mockup, CreateInstanceError,  Link
 from mockups_test.models import (y2k, SimpleModel, OtherSimpleModel,
         DeepLinkModel1, DeepLinkModel2, NullableFKModel, BasicModel,
         UniqueTestModel, UniqueTogetherTestModel, RelatedModel, O2OModel,
@@ -15,7 +15,7 @@ from mockups_test.models import (y2k, SimpleModel, OtherSimpleModel,
 class SimpleFactory(Factory):
     name = generators.StaticGenerator('foo')
 
-class SimpleModelMockup(ModelMockup):
+class SimpleMockup(Mockup):
     factory = SimpleFactory
 
 
@@ -25,12 +25,12 @@ class TestBasicModel(TestCase):
             self.fail()
 
     def test_create(self):
-        filler = ModelMockup(BasicModel)
+        filler = Mockup(BasicModel)
         filler.create(10)
         self.assertEqual(BasicModel.objects.count(), 10)
 
     def test_constraints(self):
-        filler = ModelMockup(BasicModel)
+        filler = Mockup(BasicModel)
         for obj in filler.create(100):
             self.assertTrue(len(obj.chars) > 0)
             self.assertEqual(type(obj.chars), unicode)
@@ -65,7 +65,7 @@ class TestBasicModel(TestCase):
             chars = generators.ChoiceGenerator(char_values)
             nullbool = generators.NullBooleanGenerator
             shortchars = generators.CallableGenerator(lambda: u'ab')
-        class M(ModelMockup):
+        class M(Mockup):
             factory = GF
 
         filler = M(BasicModel)
@@ -78,7 +78,7 @@ class TestBasicModel(TestCase):
 
 class TestRelations(TestCase):
     def test_generate_foreignkeys(self):
-        filler = ModelMockup(
+        filler = Mockup(
             RelatedModel,
             generate_fk=True)
         for obj in filler.create(100):
@@ -86,7 +86,7 @@ class TestRelations(TestCase):
             self.assertEqual(obj.limitedfk.name, 'foo')
 
     def test_deep_generate_foreignkeys(self):
-        filler = ModelMockup(
+        filler = Mockup(
             DeepLinkModel2,
             generate_fk=True)
         for obj in filler.create(10):
@@ -95,7 +95,7 @@ class TestRelations(TestCase):
             self.assertEqual(obj.related.related2.__class__, SimpleModel)
 
     def test_deep_generate_foreignkeys2(self):
-        filler = ModelMockup(
+        filler = Mockup(
             DeepLinkModel2,
             follow_fk=False,
             generate_fk=('related', 'related__related'))
@@ -105,7 +105,7 @@ class TestRelations(TestCase):
             self.assertEqual(obj.related.related2, None)
 
     def test_generate_only_some_foreignkeys(self):
-        filler = ModelMockup(
+        filler = Mockup(
             RelatedModel,
             generate_fk=('related',))
         for obj in filler.create(100):
@@ -113,13 +113,13 @@ class TestRelations(TestCase):
             self.assertEqual(obj.limitedfk, None)
 
     def test_follow_foreignkeys(self):
-        related = ModelMockup(BasicModel).create()[0]
+        related = Mockup(BasicModel).create()[0]
         self.assertEqual(BasicModel.objects.count(), 1)
 
         simple = SimpleModel.objects.create(name='foo')
         simple2 = SimpleModel.objects.create(name='bar')
 
-        filler = ModelMockup(
+        filler = Mockup(
             RelatedModel,
             follow_fk=True)
         for obj in filler.create(100):
@@ -127,13 +127,13 @@ class TestRelations(TestCase):
             self.assertEqual(obj.limitedfk, simple)
 
     def test_follow_only_some_foreignkeys(self):
-        related = ModelMockup(BasicModel).create()[0]
+        related = Mockup(BasicModel).create()[0]
         self.assertEqual(BasicModel.objects.count(), 1)
 
         simple = SimpleModel.objects.create(name='foo')
         simple2 = SimpleModel.objects.create(name='bar')
 
-        filler = ModelMockup(
+        filler = Mockup(
             RelatedModel,
             follow_fk=('related',))
         for obj in filler.create(100):
@@ -142,7 +142,7 @@ class TestRelations(TestCase):
 
     def test_follow_fk_for_o2o(self):
         # OneToOneField is the same as a ForeignKey with unique=True
-        filler = ModelMockup(O2OModel, follow_fk=True)
+        filler = Mockup(O2OModel, follow_fk=True)
 
         simple = SimpleModel.objects.create()
         obj = filler.create()[0]
@@ -152,7 +152,7 @@ class TestRelations(TestCase):
 
     def test_generate_fk_for_o2o(self):
         # OneToOneField is the same as a ForeignKey with unique=True
-        filler = ModelMockup(O2OModel, generate_fk=True)
+        filler = Mockup(O2OModel, generate_fk=True)
 
         all_o2o = set()
         for obj in filler.create(10):
@@ -161,22 +161,22 @@ class TestRelations(TestCase):
         self.assertEqual(set(SimpleModel.objects.all()), all_o2o)
 
     def test_follow_m2m(self):
-        related = ModelMockup(SimpleModel).create()[0]
+        related = Mockup(SimpleModel).create()[0]
         self.assertEqual(SimpleModel.objects.count(), 1)
 
-        filler = ModelMockup(
+        filler = Mockup(
             M2MModel,
             follow_m2m=(2, 10))
         for obj in filler.create(10):
             self.assertEqual(list(obj.m2m.all()), [related])
 
     def test_follow_only_some_m2m(self):
-        related = ModelMockup(SimpleModel).create()[0]
+        related = Mockup(SimpleModel).create()[0]
         self.assertEqual(SimpleModel.objects.count(), 1)
-        other_related = ModelMockup(OtherSimpleModel).create()[0]
+        other_related = Mockup(OtherSimpleModel).create()[0]
         self.assertEqual(OtherSimpleModel.objects.count(), 1)
 
-        filler = ModelMockup(
+        filler = Mockup(
             M2MModel,
             follow_m2m={
                 'm2m': (2, 10),
@@ -186,7 +186,7 @@ class TestRelations(TestCase):
             self.assertEqual(list(obj.secondm2m.all()), [])
 
     def test_generate_m2m(self):
-        filler = ModelMockup(
+        filler = Mockup(
             M2MModel,
             generate_m2m=(1, 5))
         all_m2m = set()
@@ -200,7 +200,7 @@ class TestRelations(TestCase):
         self.assertEqual(OtherSimpleModel.objects.count(), len(all_secondm2m))
 
     def test_generate_only_some_m2m(self):
-        filler = ModelMockup(
+        filler = Mockup(
             M2MModel,
             generate_m2m={
                 'm2m': (1, 5),
@@ -216,7 +216,7 @@ class TestRelations(TestCase):
         self.assertEqual(OtherSimpleModel.objects.count(), len(all_secondm2m))
 
     def test_generate_m2m_with_intermediary_model(self):
-        filler = ModelMockup(
+        filler = Mockup(
             M2MModelThrough,
             generate_m2m=(1, 5))
         all_m2m = set()
@@ -228,14 +228,14 @@ class TestRelations(TestCase):
 
 class TestUniqueConstraints(TestCase):
     def test_unique_field(self):
-        filler = ModelMockup(UniqueTestModel)
+        filler = Mockup(UniqueTestModel)
         count = len(filler.model._meta.
             get_field_by_name('choice1')[0].choices)
         for obj in filler.create(count):
             pass
 
     def test_unique_together(self):
-        filler = ModelMockup(UniqueTogetherTestModel)
+        filler = Mockup(UniqueTogetherTestModel)
         count1 = len(filler.model._meta.
             get_field_by_name('choice1')[0].choices)
         count2 = len(filler.model._meta.
@@ -246,7 +246,7 @@ class TestUniqueConstraints(TestCase):
 
 class TestGenerators(TestCase):
     def test_instance_selector(self):
-        ModelMockup(SimpleModel).create(10)
+        Mockup(SimpleModel).create(10)
 
         result = generators.InstanceSelector(SimpleModel).generate()
         self.assertEqual(result.__class__, SimpleModel)
@@ -346,12 +346,12 @@ class TestRegistry(TestCase):
         mockups.helpers._registry = self.original_registry
 
     def test_registration(self):
-        mockups.register(SimpleModel, SimpleModelMockup)
+        mockups.register(SimpleModel, SimpleMockup)
         self.assertTrue(SimpleModel in mockups.helpers._registry)
-        self.assertEqual(mockups.helpers._registry[SimpleModel], SimpleModelMockup)
+        self.assertEqual(mockups.helpers._registry[SimpleModel], SimpleMockup)
 
     def test_create(self):
-        mockups.register(SimpleModel, SimpleModelMockup)
+        mockups.register(SimpleModel, SimpleMockup)
         for obj in mockups.create(SimpleModel, 10):
             self.assertEqual(obj.name, 'foo')
         obj = mockups.create_one(SimpleModel)
@@ -369,7 +369,7 @@ class TestRegistry(TestCase):
     def test_overwrite_attributes(self):
         class GF(Factory):
             name = generators.StaticGenerator('bar')
-        class M(SimpleModelMockup):
+        class M(SimpleMockup):
             factory = GF
         mockups.register(SimpleModel, M)
         for obj in mockups.create(SimpleModel, 10):
@@ -378,7 +378,7 @@ class TestRegistry(TestCase):
         self.assertEqual(obj.name, 'bar')
 
 
-class TestModelMockupAPI(TestCase):
+class TestMockupAPI(TestCase):
     def setUp(self):
         self.original_registry = mockups.helpers._registry
         mockups.helpers._registry = {}
@@ -450,7 +450,7 @@ class TestManagementCommand(TestCase):
         self.assertTrue(obj.related.related != obj.related.related2)
 
     def test_no_follow_m2m(self):
-        ModelMockup(SimpleModel).create(1)
+        Mockup(SimpleModel).create(1)
 
         models = ('mockups_test.NullableFKModel:1',)
         self.options['no_follow_m2m'] = True
@@ -459,8 +459,8 @@ class TestManagementCommand(TestCase):
         self.assertEqual(obj.m2m.count(), 0)
 
     def test_follow_m2m(self):
-        ModelMockup(SimpleModel).create(10)
-        ModelMockup(OtherSimpleModel).create(10)
+        Mockup(SimpleModel).create(10)
+        Mockup(OtherSimpleModel).create(10)
 
         models = ('mockups_test.M2MModel:25',)
         self.options['follow_m2m'] = 'm2m:3:3,secondm2m:0:10'
@@ -487,7 +487,7 @@ class TestManagementCommand(TestCase):
         self.assertEqual(all_secondm2m, set(OtherSimpleModel.objects.all()))
 
     def test_using_registry(self):
-        mockups.register(SimpleModel, SimpleModelMockup)
+        mockups.register(SimpleModel, SimpleMockup)
         models = ('mockups_test.SimpleModel:10',)
         self.command.handle(*models, **self.options)
         for obj in SimpleModel.objects.all():

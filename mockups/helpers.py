@@ -17,9 +17,9 @@ def get_mockup(model, *args, **kwargs):
     Gets an mockup instance for a model
     '''
     if model not in _registry:
-        from mockups.base import ModelMockup
+        from mockups.base import Mockup
         warnings.warn('Model `%s` not in registry' % model.__name__)
-        cls = ModelMockup
+        cls = Mockup
     else:
         cls = _registry[model]
     return cls(model, *args, **kwargs)
@@ -34,7 +34,7 @@ def register(model, mockup_cls, overwrite=False, fail_silently=False):
         *model* can be either a model class or a string that contains the model's
         app label and class name seperated by a dot, e.g. ``"app.ModelClass"``.
 
-        *mockup_cls* is the :mod:`ModelMockup` subclass that shall be used to
+        *mockup_cls* is the :mod:`Mockup` subclass that shall be used to
         generated instances of *model*.
 
         By default :func:`register` will raise :exc:`ValueError` if the given
@@ -86,7 +86,7 @@ def create(model, count, *args, **kwargs):
     '''
     Create *count* instances of *model* using the either an appropiate
     mockup that was :ref:`registry <registry>` or fall back to the
-    default:class:`ModelMockup` class. *model* can be a model class or its
+    default:class:`Mockup` class. *model* can be a model class or its
     string representation (e.g. ``"app.ModelClass"``).
 
     All positional and keyword arguments are passed to the mockup
@@ -96,7 +96,7 @@ def create(model, count, *args, **kwargs):
         import mockups
         mockup = mockups.create('auth.User', 10)
 
-    .. note:: See :ref:`ModelMockup` for more information.
+    .. note:: See :ref:`Mockup` for more information.
 
     :func:`create` will return a list of the created objects.
     '''
