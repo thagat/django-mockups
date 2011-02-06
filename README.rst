@@ -1,7 +1,6 @@
 ==============
 django-mockups
 ==============
-
 This app aims to provide a simple way of loading masses of randomly generated
 test data into your development database. You can use a management command to
 load test data through command line.
@@ -18,11 +17,9 @@ actually be spent on hacking.
 
 Installation
 ============
-
 You must make the ``mockups`` package available on your python path.  Either
 drop it into your project directory or install it from the python package index
-with ``pip install django-mockups``. You can also use ``easy_install
-django-mockups`` if you don't have pip available.
+with ``pip install django-mockups``.
 
 To use the management command you must add ``'mockups'`` to the
 ``INSTALLED_APPS`` setting in your django settings file. You don't need to do
@@ -31,7 +28,6 @@ this if you want to use the ``mockups`` package only as library.
 
 Management command
 ==================
-
 The ``mockups`` accepts the following syntax::
 
     django-admin.py mockups [options] app.Model:# [app.Model:# ...]
@@ -60,7 +56,6 @@ information::
 
 Using mockups as tool for unittests
 ========================================
-
 It has proofed that mockups have a great use for unittests. It has always
 bugged me that creating complex models for testing their behaviour was
 complicated. Sometimes models have strict restrictions or many related objects
@@ -102,7 +97,6 @@ All created entry models get one to three new categories assigned.
 
 Setting custom values for fields
 --------------------------------
-
 However its often necessary to be sure that a specific field must have a
 specific value. This is easily achieved with the use of ``Factory``::
 
@@ -117,7 +111,6 @@ specific value. This is easily achieved with the use of ``Factory``::
 
 More
 ====
-
 There is so much more to explore which might be useful for you and your
 projects:
 

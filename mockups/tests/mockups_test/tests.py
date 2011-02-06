@@ -6,11 +6,10 @@ from django.test import TestCase
 from mockups import generators
 from mockups import Factory
 from mockups.base import ModelMockup, CreateInstanceError,  Link
-from mockups_tests.mockups_test.models import y2k
-from mockups_tests.mockups_test.models import (
-    SimpleModel, OtherSimpleModel, DeepLinkModel1, DeepLinkModel2,
-    NullableFKModel, BasicModel, UniqueTestModel, UniqueTogetherTestModel,
-    RelatedModel, O2OModel, M2MModel, ThroughModel, M2MModelThrough)
+from mockups_test.models import (y2k, SimpleModel, OtherSimpleModel,
+        DeepLinkModel1, DeepLinkModel2, NullableFKModel, BasicModel,
+        UniqueTestModel, UniqueTogetherTestModel, RelatedModel, O2OModel,
+        M2MModel, ThroughModel, M2MModelThrough)
 
 
 class SimpleFactory(Factory):

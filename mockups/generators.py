@@ -165,11 +165,14 @@ class LoremGenerator(Generator):
             lorem = lorem[:max(1, length)]
         return lorem.strip()
 
+
 class LoremSentenceGenerator(LoremGenerator):
     method = 's'
 
+
 class LoremHTMLGenerator(LoremGenerator):
     method = 'p'
+
 
 class LoremWordGenerator(LoremGenerator):
     count = 7
@@ -417,6 +420,7 @@ class MediaFilePathGenerator(FilePathGenerator):
         filename = relpath(filename, settings.MEDIA_ROOT)
         return filename
 
+
 # TODO: try to get this thing out of here
 class InstanceGenerator(Generator):
     '''
@@ -606,5 +610,4 @@ class BigIntegerFieldGenerator(FieldGenerator):
     def get_generator(self, field, **kwargs):
         return IntegerGenerator(min_value=-field.MAX_BIGINT - 1,
                 max_value=field.MAX_BIGINT)
-
 

@@ -8,8 +8,10 @@ from mockups.helpers import get_mockup
 class IGNORE_FIELD(object):
     pass
 
+
 class CreateInstanceError(Exception):
     pass
+
 
 class Link(object):
     '''
