@@ -1,6 +1,5 @@
 The mockup registry
 ===================
-
 .. _registry:
 
 Since :class:`ModelMockup` is designed to fit for almost all models, its very
@@ -16,9 +15,9 @@ command or with one of the :ref:`shortcuts <shortcuts>` in :mod:`mockups`.
 
 .. autofunction:: mockups.unregister
 
-Included ModelMockup subclasses
---------------------------
 
+Included ModelMockup subclasses
+-------------------------------
 There are some :class:`ModelMockup` subclasses that are shipped by default
 with ``django-mockups``. These are listed below.
 

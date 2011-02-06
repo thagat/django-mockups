@@ -1,6 +1,5 @@
 Contribute
 ==========
-
 If you want to use an isolated environment while hacking on
 ``django-mockups`` you can run the following commands from the project's
 root directory::

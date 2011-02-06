@@ -1,6 +1,5 @@
 Welcome to django-mockups's documentation!
 ==============================================
-
 This app aims to provide a simple way of loading masses of randomly generated
 test data into your development database. You can use a :ref:`management
 command <mockups>` to load test data through command line.

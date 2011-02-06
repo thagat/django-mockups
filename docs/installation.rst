@@ -3,7 +3,6 @@ Installation
 
 Download and install with pip or easy_install
 ---------------------------------------------
-
 You can install the ``django-mockups`` like any other python package. The
 prefered way is to use `pip <http://pypi.python.org/pypi/pip>`_. Please run the
 following command in your terminal::
@@ -23,16 +22,16 @@ not available on your system::
 
 .. _INSTALLED_APPS:
 
+
 Add mockups to your django project
 ----------------------------------
-
 Usually you want to add ``mockups`` to your ``INSTALLED_APPS`` in the
 settings file of your django project. This will make the :ref:`mockups
 <mockups>` management command available to your use.
 
+
 Using the development version
 -----------------------------
-
 You can ofcourse also install and use the current development version. All you
 need is to have the `git <http://git-scm.com/>`_ and `setuptools
 <http://pypi.python.org/pypi/setuptools>`_ installed.

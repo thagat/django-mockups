@@ -11,7 +11,9 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import sys
+import os
+from os.path import abspath, dirname, join as pjoin
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -19,6 +21,10 @@ import sys, os
 #sys.path.append(os.path.abspath('.'))
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+
+here = abspath(dirname(__file__))
+sys.path.append(pjoin(here, os.pardir))
+
 
 # -- General configuration -----------------------------------------------------
 
