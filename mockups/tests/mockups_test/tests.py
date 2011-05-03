@@ -6,11 +6,10 @@ from django.test import TestCase
 from mockups import generators
 from mockups import Factory
 from mockups.base import Mockup, CreateInstanceError,  Link
-from mockups_test.models import (y2k, SimpleModel, OtherSimpleModel,
-        DeepLinkModel1, DeepLinkModel2, NullableFKModel, BasicModel,
-        UniqueTestModel, UniqueTogetherTestModel, RelatedModel, O2OModel,
-        M2MModel, ThroughModel, M2MModelThrough)
+from mockups_test.models import *
 
+
+RELATED_MODELS = [ RelatedModel, RelatedModelQ ]
 
 class SimpleFactory(Factory):
     name = generators.StaticGenerator('foo')
@@ -78,12 +77,13 @@ class TestBasicModel(TestCase):
 
 class TestRelations(TestCase):
     def test_generate_foreignkeys(self):
-        filler = Mockup(
-            RelatedModel,
-            generate_fk=True)
-        for obj in filler.create(100):
-            self.assertEqual(obj.related.__class__, BasicModel)
-            self.assertEqual(obj.limitedfk.name, 'foo')
+        for m in RELATED_MODELS:
+            filler = Mockup(
+                m,
+                generate_fk=True)
+            for obj in filler.create(100):
+                self.assertEqual(obj.related.__class__, BasicModel)
+                self.assertEqual(obj.limitedfk.name, 'foo')
 
     def test_deep_generate_foreignkeys(self):
         filler = Mockup(
@@ -105,12 +105,13 @@ class TestRelations(TestCase):
             self.assertEqual(obj.related.related2, None)
 
     def test_generate_only_some_foreignkeys(self):
-        filler = Mockup(
-            RelatedModel,
-            generate_fk=('related',))
-        for obj in filler.create(100):
-            self.assertEqual(obj.related.__class__, BasicModel)
-            self.assertEqual(obj.limitedfk, None)
+        for m in RELATED_MODELS:
+            filler = Mockup(
+                m,
+                generate_fk=('related',))
+            for obj in filler.create(100):
+                self.assertEqual(obj.related.__class__, BasicModel)
+                self.assertEqual(obj.limitedfk, None)
 
     def test_follow_foreignkeys(self):
         related = Mockup(BasicModel).create()[0]
@@ -119,12 +120,13 @@ class TestRelations(TestCase):
         simple = SimpleModel.objects.create(name='foo')
         simple2 = SimpleModel.objects.create(name='bar')
 
-        filler = Mockup(
-            RelatedModel,
-            follow_fk=True)
-        for obj in filler.create(100):
-            self.assertEqual(obj.related, related)
-            self.assertEqual(obj.limitedfk, simple)
+        for m in RELATED_MODELS:
+            filler = Mockup(
+                m,
+                follow_fk=True)
+            for obj in filler.create(100):
+                self.assertEqual(obj.related, related)
+                self.assertEqual(obj.limitedfk, simple)
 
     def test_follow_only_some_foreignkeys(self):
         related = Mockup(BasicModel).create()[0]
@@ -133,12 +135,13 @@ class TestRelations(TestCase):
         simple = SimpleModel.objects.create(name='foo')
         simple2 = SimpleModel.objects.create(name='bar')
 
-        filler = Mockup(
-            RelatedModel,
-            follow_fk=('related',))
-        for obj in filler.create(100):
-            self.assertEqual(obj.related, related)
-            self.assertEqual(obj.limitedfk, None)
+        for m in RELATED_MODELS:
+            filler = Mockup(
+                m,
+                follow_fk=('related',))
+            for obj in filler.create(100):
+                self.assertEqual(obj.related, related)
+                self.assertEqual(obj.limitedfk, None)
 
     def test_follow_fk_for_o2o(self):
         # OneToOneField is the same as a ForeignKey with unique=True

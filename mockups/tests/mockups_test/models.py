@@ -2,6 +2,7 @@
 import os
 from datetime import datetime
 from django.db import models
+from django.db.models import Q
 
 
 filepath = os.path.dirname(os.path.abspath(__file__))
@@ -91,6 +92,11 @@ class RelatedModel(models.Model):
         limit_choices_to={'name__exact': 'foo'}, related_name='rel2',
         null=True, blank=True)
 
+class RelatedModelQ(models.Model):
+    related = models.ForeignKey(BasicModel, related_name='rel1q')
+    limitedfk = models.ForeignKey(SimpleModel,
+        limit_choices_to=Q(name='foo'), related_name='rel2q',
+        null=True, blank=True)
 
 class O2OModel(models.Model):
     o2o = models.OneToOneField(SimpleModel)

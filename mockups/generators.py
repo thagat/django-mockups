@@ -432,15 +432,17 @@ class InstanceGenerator(Generator):
     '''
     def __init__(self, mockup, limit_choices_to=None, *args, **kwargs):
         self.mockup = mockup
-        limit_choices_to = limit_choices_to or {}
-        for lookup, value in limit_choices_to.items():
-            bits = lookup.split('__')
-            if len(bits) == 1 or \
-                len(bits) == 2 and bits[1] in ('exact', 'iexact'):
-                params = {
-                    bits[0]: StaticGenerator(value)
-                }
-                self.mockup.update_fieldname_generator(**params)
+        from django.db.models import Q
+        if not isinstance(limit_choices_to, Q): # no Q support
+            limit_choices_to = limit_choices_to or {}
+            for lookup, value in limit_choices_to.items():
+                bits = lookup.split('__')
+                if len(bits) == 1 or \
+                    len(bits) == 2 and bits[1] in ('exact', 'iexact'):
+                    params = {
+                        bits[0]: StaticGenerator(value)
+                    }
+                    self.mockup.update_fieldname_generator(**params)
         super(InstanceGenerator, self).__init__(*args, **kwargs)
 
     def generate(self):
@@ -472,10 +474,14 @@ class InstanceSelector(Generator):
     def __init__(self, queryset, min_count=None, max_count=None, fallback=None,
         limit_choices_to=None, *args, **kwargs):
         from django.db.models.query import QuerySet
+        from django.db.models import Q
         if not isinstance(queryset, QuerySet):
             queryset = queryset._default_manager.all()
-        limit_choices_to = limit_choices_to or {}
-        self.queryset = queryset.filter(**limit_choices_to)
+        if isinstance(limit_choices_to, Q):
+            self.queryset = queryset.filter(limit_choices_to)
+        else:
+            limit_choices_to = limit_choices_to or {}
+            self.queryset = queryset.filter(**limit_choices_to)
         self.fallback = fallback
         self.min_count = min_count
         self.max_count = max_count
