@@ -29,7 +29,8 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import models
 from django.db.transaction import commit_on_success
 from django.utils.importlib import import_module
-from ..mockups import create, signals, autodiscover
+from ...helpers import create, autodiscover
+from ... import signals
 from optparse import make_option
 
 
