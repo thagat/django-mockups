@@ -85,8 +85,12 @@ class Factory(object):
             return generators.ChoiceFieldGenerator(field)
         elif field.default is not models.NOT_PROVIDED:
             return None # bail out
-        elif field.__class__ in self.fieldclass_to_generator:
-            obj = self.fieldclass_to_generator.get(field.__class__)
+        # check if any of bases exests in self.fieldclass_to_generator
+        elif (set(field.__class__.__mro__).
+              intersection(self.fieldclass_to_generator)):
+            for cls in field.__class__.__mro__:
+                if cls in self.fieldclass_to_generator:
+                    obj = self.fieldclass_to_generator.get(cls)
         else:
             return None # No matching generator found
 
