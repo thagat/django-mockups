@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import copy
-import warnings
 from django.conf import settings
 from django.utils.importlib import import_module
 from django.utils.module_loading import module_has_submodule
@@ -18,7 +17,6 @@ def get_mockup(model, *args, **kwargs):
     '''
     if model not in _registry:
         from mockups.base import Mockup
-        warnings.warn('Model `%s` not in registry' % model.__name__)
         cls = Mockup
     else:
         cls = _registry[model]
