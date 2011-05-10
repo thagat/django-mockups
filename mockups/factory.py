@@ -91,6 +91,7 @@ class Factory(object):
             for cls in field.__class__.__mro__:
                 if cls in self.fieldclass_to_generator:
                     obj = self.fieldclass_to_generator.get(cls)
+                    break
         else:
             return None # No matching generator found
 
