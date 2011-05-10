@@ -11,6 +11,12 @@ def y2k():
     return datetime(2000, 1, 1)
 
 
+class MyCustomField(models.CharField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('max_length', 50)
+        super(MyCustomField, self).__init__(*args, **kwargs)
+
+
 class SimpleModel(models.Model):
     name = models.CharField(max_length=50)
 
@@ -68,6 +74,8 @@ class BasicModel(models.Model):
     rfilepathfield = models.FilePathField(path=filepath, recursive=True)
     filepathfield = models.FilePathField(path=filepath)
     mfilepathfield = models.FilePathField(path=filepath, match=r'^.+\.py$')
+
+    customfield = MyCustomField()
 
 
 class UniqueTestModel(models.Model):

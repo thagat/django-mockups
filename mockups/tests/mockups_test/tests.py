@@ -54,6 +54,8 @@ class TestBasicModel(TestCase):
             self.assertTrue(' ' not in obj.emailfield)
             self.assertTrue(obj.ipaddressfield.count('.'), 3)
             self.assertTrue(len(obj.ipaddressfield) >= 7)
+            self.assertTrue(len(obj.customfield) > 0)
+            self.assertEqual(type(obj.customfield), unicode)
         self.assertEqual(BasicModel.objects.count(), 100)
 
     def test_factory(self):
