@@ -78,9 +78,12 @@ class Command(BaseCommand):
     )
 
     def format_output(self, obj):
-        output = unicode(obj)
-        if len(output) > 50:
-            output = u'%s ...' % output[:50]
+        try:
+            output = unicode(obj)
+            if len(output) > 50:
+                output = u'%s ...' % output[:50]
+        except UnicodeDecodeError:
+            output = ''
         return output
 
     def print_instance(self, sender, model, instance, **kwargs):
