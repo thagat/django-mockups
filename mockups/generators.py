@@ -209,6 +209,26 @@ class PositiveSmallIntegerGenerator(SmallIntegerGenerator):
     min_value = 0
 
 
+class FloatGenerator(Generator):
+    coerce_type = float
+    max_digits = 24
+    decimal_places = 10
+
+    def __init__(self, max_digits=None, decimal_places=None, *args, **kwargs):
+        if max_digits is not None:
+            self.max_digits = max_digits
+        if decimal_places is not None:
+            self.decimal_places = decimal_places
+        super(FloatGenerator, self).__init__(*args, **kwargs)
+
+    def generate(self):
+        maxint = 10 ** self.max_digits - 1
+        value = (
+            float(random.randint(-maxint, maxint)) /
+            10 ** self.decimal_places)
+        return value
+
+
 class ChoiceGenerator(Generator):
     choices = []
 
@@ -500,7 +520,7 @@ class InstanceSelector(Generator):
 
 #
 # Field coupled generators
-# 
+#
 class FieldGenerator(Generator):
     def __init__(self, field, **kwargs):
         empty_p = kwargs.pop('empty_p', None)

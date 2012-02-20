@@ -8,6 +8,7 @@ DEFAULT_FIELDCLASS_TO_GENERATOR = (
     (models.DateTimeField, generators.DateTimeGenerator),
     (models.EmailField, generators.EmailGenerator),
     (models.IntegerField, generators.IntegerGenerator),
+    (models.FloatField, generators.FloatGenerator),
     (models.IPAddressField, generators.IPAddressGenerator),
     (models.NullBooleanField, generators.NullBooleanGenerator),
     (models.PositiveIntegerField, generators.PositiveIntegerGenerator),
