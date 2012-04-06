@@ -72,6 +72,7 @@ class UserMockup(Mockup):
             instance.last_login = instance.date_joined
         if self.password:
             instance.set_password(self.password)
+            instance.save()
         return instance
 
 
