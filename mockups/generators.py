@@ -5,6 +5,7 @@ import random
 import re
 import string
 import uuid
+from django.utils.timezone import now
 from decimal import Decimal
 from mockups.helpers import get_mockup
 
@@ -230,8 +231,8 @@ class NullBooleanGenerator(BooleanGenerator):
 
 
 class DateTimeGenerator(Generator):
-    min_date = datetime.datetime.now() - datetime.timedelta(365 * 5)
-    max_date = datetime.datetime.now() + datetime.timedelta(365 * 1)
+    min_date = now() - datetime.timedelta(365 * 5)
+    max_date = now() + datetime.timedelta(365 * 1)
 
     def __init__(self, min_date=None, max_date=None, *args, **kwargs):
         if min_date is not None:
