@@ -258,13 +258,13 @@ class DateTimeGenerator(Generator):
     def __init__(self, min_date=None, max_date=None, *args, **kwargs):
         if min_date is not None:
             self.min_date = min_date
-        if is_naive(min_date):
-            min_date = min_date.replace(tzinfo=utc)
+        if is_naive(self.min_date):
+            self.min_date = self.min_date.replace(tzinfo=utc)
 
         if max_date is not None:
             self.max_date = max_date
-        if is_naive(max_date):
-            max_date = max_date.replace(tzinfo=utc)
+        if is_naive(self.max_date):
+            self.max_date = self.max_date.replace(tzinfo=utc)
 
         assert self.min_date < self.max_date
         super(DateTimeGenerator, self).__init__(*args, **kwargs)
